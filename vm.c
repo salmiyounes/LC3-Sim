@@ -66,6 +66,12 @@ enum {
     R_COUNT,
 };
 
+typedef enum {
+    FLAG_POS = 1 << 0,
+    FLAG_ZRO = 1 << 1,
+    FLAG_NEG = 1 << 2, 
+} vm_condition_codes;
+
 enum {
     OUT  = 0x21,
     PUTS = 0X22,
@@ -102,6 +108,11 @@ uint16_t sextend(uint16_t x, uint16_t y)
     return (x ^ m) - m;
 }
 
+bool sign_bit(uint16_t x)
+{
+    return (bool) ( (x >> 15) & 1 );
+}
+
 bool should_stop(lc3_vm_p vm) 
 {
     return vm->should_halt;
@@ -118,6 +129,21 @@ lc3_vm_p new_lc3_vm()
     vm->should_halt = false;
 
     return vm;
+}
+
+vm_condition_codes vm_sign_flag(uint16_t value) 
+{
+    if (value == 0)
+        return FLAG_ZRO;
+    else if (sign_bit(value))
+        return FLAG_NEG;
+    else 
+        return FLAG_POS;
+}
+
+void vm_setcc(lc3_vm_p vm, lc3_reg reg)
+{
+    REG(vm, R_COND) = vm_sign_flag(reg);    
 }
 
 void vm_write_memory(lc3_vm_p vm, lc3_word addr, lc3_word value) 
@@ -145,6 +171,7 @@ int vm_run_instr(lc3_vm_p vm, lc3_word instr)
             lc3_reg dr = F_DR(instr);
             lc3_addr pc_offset9 = sextend(instr, 9);
             REG(vm, dr) = REG_PC(vm) + pc_offset9;
+            vm_setcc(vm, dr);
             break;
         
         case VM_OPCODE_TRAP:
