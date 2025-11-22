@@ -22,6 +22,12 @@
 #define F_VECT8(i) \
     ((i) & 0xFF)
 
+#define F_SR1(i) \
+    (((i) >> 6) & 0x7)
+
+#define F_SR2(i) \
+    (((i) >> 0) & 0x7)
+
 #define REG_PC( vm ) \
     (vm)->reg[(R_PC)]
 
@@ -120,6 +126,11 @@ uint16_t sextend(uint16_t x, uint16_t y)
     return (x ^ m) - m;
 }
 
+bool test_bit(uint16_t x, uint16_t b) 
+{
+    return (bool) (x & (1 << b));
+}
+
 bool sign_bit(uint16_t x)
 {
     return (bool) (x & SIGN_FLAG_BIT);
@@ -199,14 +210,30 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr)
 {
     switch ((vm_opcode) (instr >> 12)) 
     {
-        case VM_OPCODE_LEA:
+        case VM_OPCODE_ADD: {
+            lc3_reg dr = F_DR(instr);
+            if (!test_bit(instr, 5))
+                REG(vm, dr) =  REG(vm, F_SR1(instr)) + REG(vm, F_SR2(instr));
+            else 
+                REG(vm, dr) = REG(vm, F_SR1(instr)) + sextend(instr, 5); // DR = SR1 + SEXT(imm5);
+            vm_setcc(vm, dr);
+            break;
+        } case VM_OPCODE_AND: {
+            lc3_reg dr = F_DR(instr);
+            if (!test_bit(instr, 5))
+                REG(vm, dr) =  REG(vm, F_SR1(instr)) & REG(vm, F_SR2(instr));
+            else 
+                REG(vm, dr) = REG(vm, F_SR1(instr)) & sextend(instr, 5); // DR = SR1 & SEXT(imm5);
+            vm_setcc(vm, dr);
+            break;
+        } case VM_OPCODE_LEA: {
             lc3_reg dr = F_DR(instr);
             lc3_addr pc_offset9 = sextend(instr, 9);
             REG(vm, dr) = REG_PC(vm) + pc_offset9;
             vm_setcc(vm, dr);
             break;
         
-        case VM_OPCODE_TRAP:
+        } case VM_OPCODE_TRAP: {
             switch (F_VECT8(instr)) 
             {
                 case PUTS:
@@ -217,7 +244,7 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr)
                     break;
             }
             break;
-        default:
+        } default:
             return RUN_UNHANDLED_OPCODE;
     }
     return RUN_SUCCESS;
