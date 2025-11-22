@@ -4,8 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_MEM_SIZE 65536
-
+// Macros
 #define TRAP_PUTS(vm)                                 \
     do {                                              \
         lc3_addr *c = (vm)->memory + REG((vm), R_R0); \
@@ -29,9 +28,15 @@
 #define REG(vm , dr) \
     (vm)->reg[(dr)]
 
+// Types
 typedef uint16_t lc3_word;
 typedef uint16_t lc3_addr;
 typedef uint16_t lc3_reg;
+
+enum {
+    MAX_MEM_SIZE  = 1 << 16, // Memory address space 2 ** 16
+    SIGN_FLAG_BIT = 1 << 15
+};
 
 typedef enum {
     VM_OPCODE_ADD  = 0b0001,
@@ -92,6 +97,13 @@ enum {
     ERROR_CODE
 };
 
+typedef enum {
+    RUN_SUCCESS = 0,
+    RUN_UNHANDLED_OPCODE,
+    RUN_FAIL
+} vm_run_result; 
+
+// Helper functions
 uint16_t bswap16(uint16_t x) 
 {
 #if defined(__clang__) || defined(__GNUC__)
@@ -110,7 +122,7 @@ uint16_t sextend(uint16_t x, uint16_t y)
 
 bool sign_bit(uint16_t x)
 {
-    return (bool) ( (x >> 15) & 1 );
+    return (bool) (x & SIGN_FLAG_BIT);
 }
 
 bool should_stop(lc3_vm_p vm) 
@@ -118,6 +130,19 @@ bool should_stop(lc3_vm_p vm)
     return vm->should_halt;
 }
 
+lc3_word bytes_to_lc3_word(unsigned char buf[2]) 
+{
+    union 
+    {
+        unsigned char bytes[2];
+        lc3_word       word;
+    } word_union; 
+    
+    memcpy(word_union.bytes, buf, 2);
+    return bswap16(word_union.word);
+}
+
+// Create 
 lc3_vm_p new_lc3_vm() 
 {
     lc3_vm_p vm = calloc(1, sizeof(struct lc3_vm));
@@ -129,6 +154,11 @@ lc3_vm_p new_lc3_vm()
     vm->should_halt = false;
 
     return vm;
+}
+
+void vm_destroy(lc3_vm_p vm) 
+{
+    free(vm);
 }
 
 vm_condition_codes vm_sign_flag(uint16_t value) 
@@ -146,6 +176,7 @@ void vm_setcc(lc3_vm_p vm, lc3_reg reg)
     REG(vm, R_COND) = vm_sign_flag(reg);    
 }
 
+// read/write from memory
 void vm_write_memory(lc3_vm_p vm, lc3_word addr, lc3_word value) 
 {
     switch(addr)
@@ -163,7 +194,8 @@ lc3_word vm_read_memory(lc3_vm_p vm, lc3_addr addr)
     return vm->memory[addr];
 }
 
-int vm_run_instr(lc3_vm_p vm, lc3_word instr)
+// Lc3 fetch/exucution logic
+vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr)
 {
     switch ((vm_opcode) (instr >> 12)) 
     {
@@ -186,22 +218,28 @@ int vm_run_instr(lc3_vm_p vm, lc3_word instr)
             }
             break;
         default:
-            return 0;
+            return RUN_UNHANDLED_OPCODE;
     }
-    return 1;
+    return RUN_SUCCESS;
 }
 
-lc3_word bytes_to_lc3_word(unsigned char buf[2]) 
+vm_run_result vm_fetch_execute(lc3_vm_p vm) 
 {
-    union 
-    {
-        unsigned char bytes[2];
-        lc3_word       word;
-    } word_union; 
-    
-    memcpy(word_union.bytes, buf, 2);
-    return bswap16(word_union.word);
+    // Fetch instruction, increment PC, and execute.
+    lc3_word instr = vm_read_memory(vm, REG_PC(vm)++); 
+    return vm_run_instr(vm, instr);  
 }
+
+void vm_run(lc3_vm_p vm) {
+   while (!should_stop(vm)) 
+   {
+        vm_run_result res = vm_fetch_execute(vm);
+        if (res != RUN_SUCCESS)
+            break;
+   }   
+}
+
+// Load object file
 
 int load_obj_file(lc3_vm_p vm, const char* filename, lc3_word *startp, lc3_word *endp) 
 {
@@ -233,10 +271,6 @@ int load_obj_file(lc3_vm_p vm, const char* filename, lc3_word *startp, lc3_word 
     return SUCCESS_CODE;
 }
 
-void vm_run(lc3_vm_p vm) {
-    while ( (!should_stop(vm)) && (vm_run_instr(vm, vm_read_memory(vm, REG_PC(vm) ++)) ) );   
-}
-
 int main(int argc, char** argv) 
 {
     lc3_vm_p vm = new_lc3_vm();
@@ -254,6 +288,6 @@ int main(int argc, char** argv)
 
     vm_run(vm);
 
-    free(vm);
+    vm_destroy(vm);
     return SUCCESS_CODE;
 }
