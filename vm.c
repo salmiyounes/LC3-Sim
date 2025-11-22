@@ -171,9 +171,9 @@ vm_condition_codes vm_sign_flag(uint16_t value)
         return FLAG_POS;
 }
 
-void vm_setcc(lc3_vm_p vm, lc3_reg reg)
+void vm_setcc(lc3_vm_p vm, lc3_reg reg_index)
 {
-    REG(vm, R_COND) = vm_sign_flag(reg);    
+    REG(vm, R_COND) = vm_sign_flag(REG(vm, reg_index));    
 }
 
 // read/write from memory
