@@ -217,6 +217,18 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
     vm_setcc(vm, dr);
     break;
   }
+  case VM_OPCODE_BR: {
+    lc3_addr pc_offset9 = sextend(instr, 9);
+    lc3_word flag = F_DR(instr);
+    if (flag & REG(vm, R_COND))
+      REG_PC(vm) += pc_offset9;
+    break;
+  }
+  case VM_OPCODE_JMP: {
+    lc3_word base_r = F_BaseR(instr);
+    REG_PC(vm) = REG(vm, base_r);
+    break;
+  }
   case VM_OPCODE_LEA: {
     lc3_reg dr = F_DR(instr);
     lc3_addr pc_offset9 = sextend(instr, 9);
