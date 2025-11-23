@@ -14,7 +14,7 @@
 // Macros
 #define TRAP_PUTS(vm)                                                          \
   do {                                                                         \
-    lc3_addr *c = (vm)->memory + REG((vm), R_R0);                              \
+    lc3_addr *c = (vm)->memory + REG(R_R0);                                    \
     while (*(c)) {                                                             \
       putc((char)*(c), stdout);                                                \
       ++(c);                                                                   \
@@ -35,9 +35,7 @@
 
 #define F_BaseR(i) F_SR1(i)
 
-#define REG_PC(vm) (vm)->reg[(R_PC)]
-
-#define REG(vm, dr) (vm)->reg[(dr)]
+#define REG(dr) (vm)->reg[(dr)]
 
 // Types
 typedef uint16_t lc3_word;
@@ -157,7 +155,7 @@ vm_condition_codes vm_sign_flag(uint16_t value) {
 }
 
 void vm_setcc(lc3_vm_p vm, lc3_reg reg_index) {
-  REG(vm, R_COND) = vm_sign_flag(REG(vm, reg_index));
+  REG(R_COND) = vm_sign_flag(REG(reg_index));
 }
 
 // read/write from memory
@@ -175,7 +173,7 @@ lc3_word vm_read_memory(lc3_vm_p vm, lc3_addr addr) { return vm->memory[addr]; }
 
 // Lc3 fetch/exucution logic
 vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
-  DEBUG_TRACE("DEBUG %s instr %x REG_PC %x\n", __func__, instr, REG_PC(vm));
+  DEBUG_TRACE("DEBUG %s instr %x REG_PC %x\n", __func__, instr, REG(R_PC));
 
   switch ((vm_opcode)(instr >> 12)) {
   case VM_OPCODE_ADD: {
@@ -183,12 +181,12 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
     if (!test_bit(instr, 5)) {
       DEBUG_TRACE("VM_OPCODE_ADD dr %x sr1 %x sr2 %x\n", dr, F_SR1(instr),
                   F_SR2(instr));
-      REG(vm, dr) = REG(vm, F_SR1(instr)) + REG(vm, F_SR2(instr));
+      REG(dr) = REG(F_SR1(instr)) + REG(F_SR2(instr));
     } else {
       uint16_t imm5 = F_imm5(instr);
       DEBUG_TRACE("VM_OPCODE_ADD dr %x sr1 %x imm5 %x\n", dr, F_SR1(instr),
                   imm5);
-      REG(vm, dr) = REG(vm, F_SR1(instr)) + imm5; // DR = SR1 + SEXT(imm5);
+      REG(dr) = REG(F_SR1(instr)) + imm5; // DR = SR1 + SEXT(imm5);
     }
     vm_setcc(vm, dr);
     break;
@@ -198,12 +196,12 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
     if (!test_bit(instr, 5)) {
       DEBUG_TRACE("VM_OPCODE_AND dr %x sr1 %x sr2 %x\n", dr, F_SR1(instr),
                   F_SR2(instr));
-      REG(vm, dr) = REG(vm, F_SR1(instr)) & REG(vm, F_SR2(instr));
+      REG(dr) = REG(F_SR1(instr)) & REG(F_SR2(instr));
     } else {
       uint16_t imm5 = F_imm5(instr);
       DEBUG_TRACE("VM_OPCODE_AND dr %x sr1 %x imm5 %x\n", dr, F_SR1(instr),
                   imm5);
-      REG(vm, dr) = REG(vm, F_SR1(instr)) & imm5; // DR = SR1 & SEXT(imm5);
+      REG(dr) = REG(F_SR1(instr)) & imm5; // DR = SR1 & SEXT(imm5);
     }
     vm_setcc(vm, dr);
     break;
@@ -213,26 +211,26 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
     //  Initiate ACV exception
     lc3_reg dr = F_DR(instr);
     lc3_addr pc_offset9 = sextend(instr, 9);
-    REG(vm, dr) = vm_read_memory(vm, REG_PC(vm) + pc_offset9);
+    REG(dr) = vm_read_memory(vm, REG(R_PC) + pc_offset9);
     vm_setcc(vm, dr);
     break;
   }
   case VM_OPCODE_BR: {
     lc3_addr pc_offset9 = sextend(instr, 9);
     lc3_word flag = F_DR(instr);
-    if (flag & REG(vm, R_COND))
-      REG_PC(vm) += pc_offset9;
+    if (flag & REG(R_COND))
+      REG(R_PC) += pc_offset9;
     break;
   }
   case VM_OPCODE_JMP: {
     lc3_word base_r = F_BaseR(instr);
-    REG_PC(vm) = REG(vm, base_r);
+    REG(R_PC) = REG(base_r);
     break;
   }
   case VM_OPCODE_LEA: {
     lc3_reg dr = F_DR(instr);
     lc3_addr pc_offset9 = sextend(instr, 9);
-    REG(vm, dr) = REG_PC(vm) + pc_offset9;
+    REG(dr) = REG(R_PC) + pc_offset9;
     vm_setcc(vm, dr);
     break;
   }
@@ -255,7 +253,7 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
 
 vm_run_result vm_fetch_execute(lc3_vm_p vm) {
   // Fetch instruction, increment PC, and execute.
-  lc3_word instr = vm_read_memory(vm, REG_PC(vm)++);
+  lc3_word instr = vm_read_memory(vm, REG(R_PC)++);
   return vm_run_instr(vm, instr);
 }
 
@@ -289,7 +287,7 @@ int load_obj_file(lc3_vm_p vm, const char *filename, lc3_word *startp,
     addr = (addr + 1) & 0xFFFF;
   }
 
-  REG_PC(vm) = *startp = start;
+  REG(R_PC) = *startp = start;
   *endp = addr;
 
   fclose(f);
