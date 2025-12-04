@@ -13,17 +13,6 @@
 
 #define err(...) fprintf(stderr, __VA_ARGS__)
 
-// Macros
-#define TRAP_PUTS(vm)                                                          \
-  do {                                                                         \
-    lc3_addr *c = (vm)->memory + REG(R_R0);                                    \
-    while (*(c)) {                                                             \
-      putc((char)*(c), stdout);                                                \
-      ++(c);                                                                   \
-    }                                                                          \
-    fflush(stdout);                                                            \
-  } while (0)
-
 // Field access macros; "i" is an instruction
 #define F_DR(i) (((i) >> 9) & 0x7)
 
@@ -133,6 +122,21 @@ lc3_word bytes_to_lc3_word(unsigned char buf[2]) {
 
   memcpy(word_union.bytes, buf, 2);
   return bswap16(word_union.word);
+}
+
+// Handle traps
+void trap_puts(lc3_vm_p vm) {
+  lc3_addr *c = vm->memory + REG(R_R0);
+  while (*c)
+  {
+    putc((char)*(c), stdout);
+    ++c;
+  }
+}
+
+void trap_out(lc3_vm_p vm) {
+  fputc((char)REG(R_R0) & 0XFF, stdout); // R0[7:0]
+  fflush(stdout);
 }
 
 // Create
@@ -247,7 +251,10 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
   case VM_OPCODE_TRAP: {
     switch (F_VECT8(instr)) {
     case PUTS:
-      TRAP_PUTS(vm);
+      trap_puts(vm);
+      break;
+    case OUT:
+      trap_out(vm);
       break;
     case HALT:
       vm->should_halt = true;
