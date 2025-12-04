@@ -11,6 +11,8 @@
 #define DEBUG_TRACE(...)
 #endif
 
+#define err(...) fprintf(stderr, __VA_ARGS__)
+
 // Macros
 #define TRAP_PUTS(vm)                                                          \
   do {                                                                         \
@@ -30,6 +32,8 @@
 #define F_SR1(i) (((i) >> 6) & 0x7)
 
 #define F_SR2(i) (((i) >> 0) & 0x7)
+
+#define F_SR(i) F_SR1(i)
 
 #define F_imm5(i) sextend(i, 5)
 
@@ -135,7 +139,7 @@ lc3_word bytes_to_lc3_word(unsigned char buf[2]) {
 lc3_vm_p new_lc3_vm() {
   lc3_vm_p vm = calloc(1, sizeof(struct lc3_vm));
   if (vm == NULL) {
-    fprintf(stderr, "%s: could not allocate memory for 'vm' \n", __func__);
+    err("%s: could not allocate memory for 'vm' \n", __func__);
     exit(ERROR_CODE);
   }
   vm->should_halt = false;
@@ -299,12 +303,12 @@ int main(int argc, char **argv) {
   lc3_word start, end;
 
   if (argc < 2) {
-    fprintf(stderr, "Usage: %s <objfile>\n", argv[0]);
+    err("Usage: %s <objfile>\n", argv[0]);
     return ERROR_CODE;
   }
 
   if (load_obj_file(vm, argv[1], &start, &end) != SUCCESS_CODE) {
-    fprintf(stderr, "Failed to load %s\n", argv[1]);
+    err("Failed to load %s\n", argv[1]);
     return ERROR_CODE;
   }
 
