@@ -238,6 +238,12 @@ vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
     vm_setcc(vm, dr);
     break;
   }
+  case VM_OPCODE_NOT: {
+    lc3_reg dr = F_DR(instr);
+    REG(dr) = ~REG(F_SR(instr));
+    vm_setcc(vm, dr);
+    break;
+  }
   case VM_OPCODE_TRAP: {
     switch (F_VECT8(instr)) {
     case PUTS:
