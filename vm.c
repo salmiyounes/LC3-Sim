@@ -2,7 +2,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 // Debug trace macro
 #ifdef TRACE
@@ -86,7 +90,7 @@ struct lc3_vm {
   lc3_word memory[MAX_MEM_SIZE];
   lc3_addr reg[R_COUNT];
 };
-
+struct lc3_vm;
 typedef struct lc3_vm *lc3_vm_p;
 
 enum { SUCCESS_CODE = 0, ERROR_CODE };
@@ -113,16 +117,6 @@ bool test_bit(uint16_t x, uint16_t b) { return (bool)(x & (1 << b)); }
 bool sign_bit(uint16_t x) { return (bool)(x & SIGN_FLAG_BIT); }
 
 bool should_stop(lc3_vm_p vm) { return vm->should_halt; }
-
-lc3_word bytes_to_lc3_word(unsigned char buf[2]) {
-  union {
-    unsigned char bytes[2];
-    lc3_word word;
-  } word_union;
-
-  memcpy(word_union.bytes, buf, 2);
-  return bswap16(word_union.word);
-}
 
 // Handle traps
 void trap_puts(lc3_vm_p vm) {
@@ -283,44 +277,50 @@ void vm_run(lc3_vm_p vm) {
 }
 
 // Load object file
-int load_obj_file(lc3_vm_p vm, const char *filename, lc3_word *startp,
-                  lc3_word *endp) {
-  FILE *f;
-  lc3_word addr, start;
-  unsigned char buf[2];
+int vm_load_data(lc3_vm_p vm, unsigned const char *data, size_t lenght) {
+  size_t load_lenght = (lenght - sizeof(lc3_addr)) / sizeof(lc3_word); 
+  lc3_addr load_addr = (lc3_addr)bswap16(*((lc3_addr*)data));
 
-  if ((f = fopen(filename, "rb")) == NULL)
-    return ERROR_CODE;
+  lc3_word* dst = vm->memory + load_addr;
+  lc3_word* src = (lc3_word *)(data + sizeof(lc3_addr));
 
-  if (fread(buf, 2, 1, f) != 1) {
-    fclose(f);
-    return ERROR_CODE;
-  }
+  while (load_lenght-- > 0) 
+    *(dst++) = (lc3_word)bswap16(*(src++));
 
-  addr = start = bytes_to_lc3_word(buf);
-
-  while (fread(buf, 2, 1, f) == 1) {
-    vm_write_memory(vm, addr, bytes_to_lc3_word(buf));
-    addr = (addr + 1) & 0xFFFF;
-  }
-
-  REG(R_PC) = *startp = start;
-  *endp = addr;
-
-  fclose(f);
+  REG(R_PC) = load_addr;
   return SUCCESS_CODE;
+}
+
+int load_obj_file(lc3_vm_p vm, const char *filename) {
+  int fd;
+  unsigned char *data;
+  struct stat sb;
+  if ((fd = open(filename, O_RDONLY)) < 0)
+    return ERROR_CODE;
+  
+  if (fstat(fd, &sb) < 0)
+    return ERROR_CODE;
+
+  if ((data = mmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, fd, 0)) == MAP_FAILED)
+    return ERROR_CODE;
+  
+  int result = vm_load_data(vm, data, sb.st_size);
+  
+  munmap(data, sb.st_size);
+  close(fd);
+  
+  return result;
 }
 
 int main(int argc, char **argv) {
   lc3_vm_p vm = new_lc3_vm();
-  lc3_word start, end;
 
   if (argc < 2) {
     err("Usage: %s <objfile>\n", argv[0]);
     return ERROR_CODE;
   }
 
-  if (load_obj_file(vm, argv[1], &start, &end) != SUCCESS_CODE) {
+  if (load_obj_file(vm, argv[1]) != SUCCESS_CODE) {
     err("Failed to load %s\n", argv[1]);
     return ERROR_CODE;
   }
