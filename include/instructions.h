@@ -27,6 +27,10 @@ static void reg_write(lc3_vm_p vm, const lc3_reg reg_index,
     vm_setcc(vm, reg_index);
 }
 
+static inline vm_opcode f_opcode(const lc3_word instr) {
+  return (vm_opcode)(instr >> 12);
+}
+
 vm_run_result vm_fetch_execute(lc3_vm_p vm);
 
 vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr);

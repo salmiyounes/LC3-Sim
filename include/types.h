@@ -17,6 +17,9 @@
 #define msg(...) fprintf(stdout, __VA_ARGS__)
 #define err(...) fprintf(stderr, __VA_ARGS__)
 
+// Macros
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
+
 // Types
 typedef uint16_t lc3_word;
 typedef uint16_t lc3_addr;
@@ -78,6 +81,7 @@ struct lc3_vm {
   lc3_word memory[MAX_MEM_SIZE];
   lc3_addr reg[R_COUNT];
   jmp_buf buf;
+  vm_run_result last_result;
 };
 
 struct lc3_vm;

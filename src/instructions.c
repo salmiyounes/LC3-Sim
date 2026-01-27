@@ -3,8 +3,6 @@
 #include <setjmp.h>
 #include <stdbool.h>
 
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
-
 typedef void (*ins_handler_t)(lc3_vm_p vm, lc3_word instr);
 typedef void (*trap_handler_t)(lc3_vm_p vm);
 
@@ -97,9 +95,11 @@ void handle_ld(lc3_vm_p vm, lc3_word instr) {
 
 void handle_ldi(lc3_vm_p vm, lc3_word instr) {
   msg("Unimplemented opcode LDI\n");
+  trap_halt(vm);
 }
 void handle_ldr(lc3_vm_p vm, lc3_word instr) {
   msg("Unimplemented opcode LDR\n");
+  trap_halt(vm);
 }
 
 void handle_lea(lc3_vm_p vm, lc3_word instr) {
@@ -115,28 +115,36 @@ void handle_not(lc3_vm_p vm, lc3_word instr) {
 
 void handle_rti(lc3_vm_p vm, lc3_word instr) {
   msg("Unimplemented opcode RTI\n");
+  trap_halt(vm);
 }
 
 void handle_st(lc3_vm_p vm, lc3_word instr) {
   msg("Unimplemented opcode ST\n");
+  trap_halt(vm);
 }
 
 void handle_sti(lc3_vm_p vm, lc3_word instr) {
   msg("Unimplemented opcode STI\n");
+  trap_halt(vm);
 }
 
 void handle_str(lc3_vm_p vm, lc3_word instr) {
   msg("Unimplemented opcode STR\n");
+  trap_halt(vm);
+}
+
+void vm_call_trap_handler(lc3_vm_p vm, const uint16_t vect8) {
+  trap_handler_t handler = dispatch_trap_table[vect8];
+  if (!handler)
+    return;
+  handler(vm);
 }
 
 void handle_trap(lc3_vm_p vm, lc3_word instr) {
   uint16_t vect8 = f_vect8(instr);
   if (vect8 >= ARRAY_SIZE(dispatch_trap_table))
     return;
-  trap_handler_t handler = dispatch_trap_table[vect8];
-  if (!handler)
-    return;
-  handler(vm);
+  vm_call_trap_handler(vm, vect8);
 }
 
 void handle_reserved(lc3_vm_p vm, lc3_word instr) { return; }
@@ -172,8 +180,8 @@ void vm_call_handler(lc3_vm_p vm, lc3_word instr, const vm_opcode opcode) {
   handler(vm, instr);
 }
 
-vm_run_result vm_run_instr(lc3_vm_p vm, lc3_word instr) {
-  vm_opcode opcode = instr >> 12;
+vm_run_result vm_run_instr(lc3_vm_p vm, const lc3_word instr) {
+  vm_opcode opcode = f_opcode(instr);
 
   if (opcode >= ARRAY_SIZE(dispatch_opcode_table))
     return RUN_UNHANDLED_OPCODE;
