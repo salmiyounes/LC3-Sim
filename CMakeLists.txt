@@ -6,6 +6,7 @@ set(SOURCES
     src/instructions.c
     src/main.c 
     src/vm.c
+    src/loader.c
 )
 
 add_executable(lc3 ${SOURCES})
