@@ -5,10 +5,9 @@
 #include <stdlib.h>
 
 static const char *vm_error_messages[] = {
-  [RUN_SUCCESS]          = "VM execution halted safely.\n",
-  [RUN_FAIL]             = "Fatal: General VM failure.\n",
-  [RUN_UNHANDLED_OPCODE] = "Fatal: Unhandled or illegal opcode.\n"
-};
+    [RUN_SUCCESS] = "VM execution halted safely.\n",
+    [RUN_FAIL] = "Fatal: General VM failure.\n",
+    [RUN_UNHANDLED_OPCODE] = "Fatal: Unhandled or illegal opcode.\n"};
 
 // VM lifecycle
 lc3_vm_p vm_create() {
@@ -28,17 +27,16 @@ void vm_run(lc3_vm_p vm) {
     vm_run_result flag = vm->last_result;
     if (flag < ARRAY_SIZE(vm_error_messages)) {
       const char *log_msg = vm_error_messages[flag];
-      if (flag != RUN_SUCCESS) 
+      if (flag != RUN_SUCCESS)
         err("%s", log_msg);
-      else 
+      else
         msg("%s", log_msg);
     }
     return;
   }
 
   for (;;) {
-    vm->last_result = vm_fetch_execute(vm);
-    if (vm->last_result != RUN_SUCCESS) 
+    if ((vm->last_result = vm_fetch_execute(vm)) != RUN_SUCCESS)
       longjmp(vm->buf, 1);
   }
 }
