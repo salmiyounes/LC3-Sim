@@ -15,3 +15,17 @@ target_include_directories(lc3
     PRIVATE 
     ${PROJECT_SOURCE_DIR}/include
 )
+
+enable_testing()
+
+file(GLOB TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.obj")
+
+foreach(test_file ${TEST_FILES})
+    get_filename_component(test_name ${test_file} NAME_WE)
+
+    add_test(NAME ${test_name} COMMAND lc3 ${test_file})
+    
+    set_tests_properties(${test_name} PROPERTIES 
+        PASS_REGULAR_EXPRESSION "VM execution halted safely"
+    )
+endforeach()
