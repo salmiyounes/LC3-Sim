@@ -16,6 +16,18 @@ target_include_directories(lc3
     ${PROJECT_SOURCE_DIR}/include
 )
 
+add_executable(lc3-dbg
+    src/instructions.c
+    src/vm.c
+    src/loader.c
+    src/debugger.c
+)
+
+target_include_directories(lc3-dbg
+    PRIVATE 
+    ${PROJECT_SOURCE_DIR}/include
+)
+
 enable_testing()
 
 file(GLOB TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.obj")
