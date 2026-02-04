@@ -28,6 +28,8 @@ target_include_directories(lc3-dbg
     ${PROJECT_SOURCE_DIR}/include
 )
 
+target_compile_definitions(lc3-dbg PRIVATE DEBUG_MODE)
+
 enable_testing()
 
 file(GLOB TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.obj")
