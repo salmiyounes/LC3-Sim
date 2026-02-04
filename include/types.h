@@ -79,6 +79,9 @@ typedef enum { RUN_SUCCESS = 0, RUN_UNHANDLED_OPCODE, RUN_FAIL } vm_run_result;
 // Structures
 struct lc3_vm {
   lc3_word memory[MAX_MEM_SIZE];
+#ifdef DEBUG_MODE
+  bool breakpoints[MAX_MEM_SIZE];
+#endif
   lc3_addr reg[R_COUNT];
   jmp_buf buf;
   vm_run_result last_result;

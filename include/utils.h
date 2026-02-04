@@ -3,6 +3,21 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+static char *_strdup(const char *src) {
+  if (src == NULL)
+    return NULL;
+
+  size_t len = strlen(src) + 1;
+  void *new_s = malloc(len);
+
+  if (new_s == NULL)
+    return NULL;
+
+  return (char *)memcpy(new_s, src, len);
+}
 
 static uint16_t bswap16(uint16_t x) {
 #if defined(__clang__) || defined(__GNUC__)

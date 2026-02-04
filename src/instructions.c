@@ -6,7 +6,7 @@
 typedef void (*ins_handler_t)(lc3_vm_p vm, lc3_word instr);
 typedef void (*trap_handler_t)(lc3_vm_p vm);
 
-#define CONCAT(a, b) a##b 
+#define CONCAT(a, b) a##b
 #define trap(x) CONCAT(_trap_, x)
 #define handle(x) CONCAT(_handle_, x)
 
@@ -162,7 +162,7 @@ static const ins_handler_t dispatch_opcode_table[16] = {
     [VM_OPCODE_LD] = handle(ld),
     [VM_OPCODE_LDI] = handle(ldi),
     [VM_OPCODE_LEA] = handle(lea),
-    [VM_OPCODE_NOT] = handle(not),
+    [VM_OPCODE_NOT] = handle(not ),
     [VM_OPCODE_RTI] = handle(rti),
     [VM_OPCODE_ST] = handle(st),
     [VM_OPCODE_STI] = handle(sti),
