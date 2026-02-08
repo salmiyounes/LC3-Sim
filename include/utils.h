@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static char *_strdup(const char *src) {
+__attribute__((unused)) static char *_strdup(const char *src) {
   if (src == NULL)
     return NULL;
 
@@ -19,7 +19,7 @@ static char *_strdup(const char *src) {
   return (char *)memcpy(new_s, src, len);
 }
 
-static uint16_t bswap16(uint16_t x) {
+__attribute__((unused)) static uint16_t bswap16(uint16_t x) {
 #if defined(__clang__) || defined(__GNUC__)
   return __builtin_bswap16(x);
 #else
@@ -33,6 +33,8 @@ static uint16_t sextend(uint16_t x, uint16_t y) {
   return (x ^ m) - m;
 }
 
-static bool test_bit(uint16_t x, uint16_t b) { return (bool)(x & (1 << b)); }
+__attribute__((unused)) static bool test_bit(uint16_t x, uint16_t b) { 
+  return (bool)(x & (1 << b)); 
+}
 
 #endif // UTILS_H
