@@ -16,6 +16,11 @@ target_include_directories(lc3
     ${PROJECT_SOURCE_DIR}/include
 )
 
+target_compile_options(lc3 
+    PRIVATE
+    -Wall -Wextra -Wpedantic
+)
+
 add_executable(lc3-dbg
     src/instructions.c
     src/vm.c
