@@ -6,6 +6,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define strdup(x) _strdup(x)
+
+__attribute__((unused)) static bool is_prefix(const char *pre,
+                                              const char *str) {
+  return strncmp(pre, str, strlen(pre)) == 0;
+}
+
 __attribute__((unused)) static char *_strdup(const char *src) {
   if (src == NULL)
     return NULL;
@@ -33,8 +40,8 @@ static uint16_t sextend(uint16_t x, uint16_t y) {
   return (x ^ m) - m;
 }
 
-__attribute__((unused)) static bool test_bit(uint16_t x, uint16_t b) { 
-  return (bool)(x & (1 << b)); 
+__attribute__((unused)) static bool test_bit(uint16_t x, uint16_t b) {
+  return (bool)(x & (1 << b));
 }
 
 #endif // UTILS_H

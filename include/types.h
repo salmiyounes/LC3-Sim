@@ -74,7 +74,12 @@ typedef enum { OUT = 0x21, PUTS = 0X22, HALT = 0x25 } trap_vect;
 
 enum { SUCCESS_CODE = 0, ERROR_CODE };
 
-typedef enum { RUN_SUCCESS = 0, RUN_UNHANDLED_OPCODE, RUN_FAIL } vm_run_result;
+typedef enum {
+  RUN_SUCCESS = 0,
+  RUN_UNHANDLED_OPCODE,
+  RUN_BREAKPOINT_STOP,
+  RUN_FAIL
+} vm_run_result;
 
 // Structures
 struct lc3_vm {
@@ -120,6 +125,25 @@ static inline lc3_addr get_reg_val(lc3_vm_p vm, const uint16_t reg_idx) {
 static inline lc3_addr *get_reg_ptr(lc3_vm_p vm, const uint16_t reg_idx) {
   assert(reg_idx < R_COUNT);
   return &vm->reg[reg_idx];
+}
+
+static inline bool is_breakpoint_hit(lc3_vm_p vm) {
+#ifdef DEBUG_MODE
+  lc3_addr index = get_reg_val(vm, R_PC);
+  return vm->breakpoints[index];
+#endif
+  (void)vm;
+  return false;
+}
+
+static inline void set_breakpoint(lc3_vm_p vm, const uint16_t index) {
+#ifdef DEBUG_MODE
+  if (!vm->breakpoints[index])
+    msg("Breakpoint set at 0x%04X\n", (uint16_t)index);
+  vm->breakpoints[index] = true;
+#endif
+  (void)vm;
+  (void)index;
 }
 
 #endif // TYPES_H

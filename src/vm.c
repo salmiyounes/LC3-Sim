@@ -7,7 +7,8 @@
 static const char *vm_error_messages[] = {
     [RUN_SUCCESS] = "VM execution halted safely.\n",
     [RUN_FAIL] = "Fatal: General VM failure.\n",
-    [RUN_UNHANDLED_OPCODE] = "Fatal: Unhandled or illegal opcode.\n"};
+    [RUN_UNHANDLED_OPCODE] = "Fatal: Unhandled or illegal opcode.\n",
+};
 
 // VM lifecycle
 lc3_vm_p vm_create() {
@@ -36,15 +37,6 @@ void vm_run(lc3_vm_p vm) {
   }
 
   for (;;) {
-#ifdef DEBUG_MODE
-    bool *ptr = vm->breakpoints + get_reg_val(vm, R_PC);
-    if (*ptr) {
-      // FIXME: i don't know if this the proper solution but it work
-      *ptr = false;
-      msg("Breakpoint hit at 0x%04X\n", get_reg_val(vm, R_PC));
-      return;
-    }
-#endif
     if ((vm->last_result = vm_fetch_execute(vm)) != RUN_SUCCESS)
       longjmp(vm->buf, 1);
   }

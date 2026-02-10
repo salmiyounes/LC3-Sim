@@ -19,8 +19,10 @@ static void vm_setcc(lc3_vm_p vm, const lc3_reg reg_index) {
   *ptr = vm_sign_flag(get_reg_val(vm, reg_index));
 }
 
-__attribute__((unused)) static void reg_write(lc3_vm_p vm, const lc3_reg reg_index,
-                      const lc3_word value, const bool is_setcc) {
+__attribute__((unused)) static void reg_write(lc3_vm_p vm,
+                                              const lc3_reg reg_index,
+                                              const lc3_word value,
+                                              const bool is_setcc) {
   lc3_addr *ptr = get_reg_ptr(vm, reg_index);
   *ptr = value;
   if (is_setcc)
@@ -30,6 +32,8 @@ __attribute__((unused)) static void reg_write(lc3_vm_p vm, const lc3_reg reg_ind
 static inline vm_opcode f_opcode(const lc3_word instr) {
   return (vm_opcode)(instr >> 12);
 }
+
+vm_run_result vm_step(lc3_vm_p vm);
 
 vm_run_result vm_fetch_execute(lc3_vm_p vm);
 

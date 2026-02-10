@@ -163,10 +163,10 @@ void _handle__trap(lc3_vm_p vm, lc3_word instr) {
   vm_call_trap_handler(vm, vect8);
 }
 
-void _handle_reserved(lc3_vm_p vm, lc3_word instr) { 
+void _handle_reserved(lc3_vm_p vm, lc3_word instr) {
   (void)vm;
   (void)instr;
-  return; 
+  return;
 }
 
 static const ins_handler_t dispatch_opcode_table[16] = {
@@ -188,11 +188,17 @@ static const ins_handler_t dispatch_opcode_table[16] = {
 };
 
 // fetch/exucution logic
-vm_run_result vm_fetch_execute(lc3_vm_p vm) {
-  // Fetch instruction, increment PC, and execute.
+vm_run_result vm_step(lc3_vm_p vm) {
   lc3_addr *pc = get_reg_ptr(vm, R_PC);
   lc3_word instr = vm_read_memory(vm, (*pc)++);
   return vm_run_instr(vm, instr);
+}
+
+vm_run_result vm_fetch_execute(lc3_vm_p vm) {
+  // Check for breakpoints
+  if (is_breakpoint_hit(vm))
+    return 100;
+  return vm_step(vm);
 }
 
 void vm_call_handler(lc3_vm_p vm, lc3_word instr, const vm_opcode opcode) {

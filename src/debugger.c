@@ -1,3 +1,5 @@
+#include "../thirdparty/linenoise/linenoise.h"
+#include "instructions.h"
 #include "loader.h"
 #include "vm.h"
 #include <stdbool.h>
@@ -5,49 +7,165 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum { RUN = 0, QUIT, HELP, BREAK, CONTINUE, UNKNOWN } command_type;
+#define HISTORY_MAX_LEN 100
 
-command_type parse_line(char *line) {
-  char *str = _strdup(line);
-  command_type type = UNKNOWN;
-  if (str == NULL)
-    return UNKNOWN;
+typedef void (*cmd_handler_func)(lc3_vm_p vm, const char *args);
 
-  str[strcspn(str, "\r\n")] = '\0';
-  char *token = strtok(str, " ");
-  if (token == NULL) {
-    free(str);
-    return UNKNOWN;
-  }
+typedef enum { RUN = 0, QUIT, HELP, BREAK, CONTINUE, UNKNOWN } cmd_type;
 
-  if (strcmp(token, "run") == 0) {
-    type = RUN;
-  } else if (strcmp(token, "quit") == 0) {
-    type = QUIT;
-  } else if (strcmp(token, "help") == 0) {
-    type = HELP;
-  } else if (strcmp(token, "break") == 0) {
-    type = BREAK;
-  } else if (strcmp(token, "continue") == 0) {
-    type = CONTINUE;
-  }
+typedef enum {
+  PARSE_SUCCESS_CODE = 0,
+  PARSE_ERROR_CODE,
+  PARSE_EXIT_CODE,
+  PARSE_UNKONWN_CODE
+} parse_line_result;
 
+typedef struct {
+  char *name;
+  char *alias;
+  char *description;
+  cmd_handler_func func;
+} cmd_handler;
+
+const char *register_names[] = {
+    [R_R0] = "R0", [R_R1] = "R1",     [R_R2] = "R2", [R_R3] = "R3",
+    [R_R4] = "R4", [R_R5] = "R5",     [R_R6] = "R6", [R_R7] = "R7",
+    [R_PC] = "PC", [R_COND] = "COND",
+};
+
+void handle_break(lc3_vm_p vm, const char *args) {
+  (void)vm;
+  char *str, *s_addr;
+  uint16_t addr;
+  str = strdup(args);
+  s_addr = strtok(str, " ");
+  if (s_addr == NULL)
+    goto cleanup;
+
+  addr = (uint16_t)strtol(s_addr, NULL, 16);
+
+  set_breakpoint(vm, addr);
+
+cleanup:
   free(str);
-  return type;
+  return;
 }
 
-void print_usage(const char *prog_name) {
-  msg("LC-3 GDB-Style Debugger\n");
-  msg("Usage: %s <objfile>\n", prog_name);
-  msg("\nArguments:\n");
-  msg("  <objfile>   The LC-3 .obj file to debug\n");
-  msg("\nInteractive Commands (within lc3-dbg>):\n");
-  msg("  run         Starts or resumes execution\n");
-  msg("  quit        Exits the debugger and destroys the VM\n");
+void handle_run(lc3_vm_p vm, const char *args) {
+  (void)args;
+  vm_run(vm);
+  return;
+}
+
+void handle_continue(lc3_vm_p vm, const char *args) {
+  (void)args;
+  vm_step(vm);
+  vm_run(vm);
+  return;
+}
+
+void handle_registers(lc3_vm_p vm, const char *args) {
+  (void)args;
+  for (uint16_t reg_index = 0; reg_index < R_COUNT; reg_index++)
+    msg("\t%s   : 0x%04X\n", register_names[reg_index],
+        get_reg_val(vm, reg_index));
+  putc('\n', stdout);
+}
+
+void handle_next_instr(lc3_vm_p vm, const char *args) {
+  (void)args;
+  vm->last_result = vm_fetch_execute(vm);
+}
+
+const cmd_handler cmd_handler_table[] = {
+    {"break", "br", "Set a breakpoint at a hex address", handle_break},
+    {"run", "r", "Start execution of the program", handle_run},
+    {"continue", "c", "Continue execution after a break", handle_continue},
+    {"registers", "reg", "Print current register values", handle_registers},
+    {"nexti", "ni", "Execute the next instruction", handle_next_instr}};
+
+static bool cmd_handler_compare(cmd_handler c, const char *str) {
+  return (strcmp(str, c.name) == 0) || (strcmp(str, c.alias) == 0);
+}
+
+static bool cmd_check_command(const char *str) {
+  if (str == NULL)
+    return false;
+
+  for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
+    cmd_handler c = cmd_handler_table[i];
+    if (cmd_handler_compare(c, str))
+      return true;
+  }
+  return false;
+}
+
+void print_help(void) {
+  msg("Available commands:\n");
+  for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
+    msg("  %-12s (alias: %-3s)  - %s\n", cmd_handler_table[i].name,
+        cmd_handler_table[i].alias, cmd_handler_table[i].description);
+  }
+  msg("  %-12s (alias: %-3s)  - Exit the debugger\n", "quit", "q");
+}
+
+parse_line_result handle_command(lc3_vm_p vm, const char *line) {
+  char *token, *str, *args;
+  str = strdup(line);
+  if (str == NULL)
+    goto error;
+
+  token = strtok(str, " ");
+  if (token == NULL)
+    goto success;
+
+  if ((strcmp(token, "quit") == 0) || (strcmp(token, "q") == 0))
+    goto exit;
+
+  if ((strcmp(token, "help") == 0) || (strcmp(token, "h") == 0)) {
+    print_help();
+    goto success;
+  }
+
+  if (!cmd_check_command(token)) {
+    msg("Undefined command: '%s'.  Try 'help'.\n", token);
+    goto unknown;
+  }
+
+  args = strtok(NULL, "");
+
+  for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
+    cmd_handler c = cmd_handler_table[i];
+    if (cmd_handler_compare(c, token)) {
+      c.func(vm, args);
+      goto success;
+    }
+  }
+
+error:
+  free(str);
+  return PARSE_ERROR_CODE;
+exit:
+  free(str);
+  return PARSE_EXIT_CODE;
+unknown:
+  free(str);
+  return PARSE_UNKONWN_CODE;
+success:
+  free(str);
+  return PARSE_SUCCESS_CODE;
+}
+
+void completion(const char *buf, linenoiseCompletions *lc) {
+  for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
+    if (is_prefix(buf, cmd_handler_table[i].name))
+      linenoiseAddCompletion(lc, cmd_handler_table[i].name);
+  }
 }
 
 int main(int argc, char **argv) {
   lc3_vm_p vm;
+  char *line;
   if (argc < 2) {
     err("Usage: %s <objfile>\n", argv[0]);
     return ERROR_CODE;
@@ -59,51 +177,24 @@ int main(int argc, char **argv) {
     return ERROR_CODE;
   }
 
-  char line[256];
-  bool keep_running = true;
-
-  while (keep_running) {
-    msg("lc3-dbg> ");
-    if (fgets(line, sizeof(line), stdin) == NULL)
+  // Set history max len
+  linenoiseHistorySetMaxLen(HISTORY_MAX_LEN);
+  // Registering a completion callback
+  linenoiseSetCompletionCallback(completion);
+  for (;;) {
+    if ((line = linenoise("lc3-dbg> ")) == NULL)
       break;
 
-    switch (parse_line(line)) {
-    case RUN:
-      msg("Starting execution...\n");
-      vm_run(vm);
-      break;
-    case BREAK:
-      uint16_t addr;
-      msg("%s\n", line);
-      if (sscanf(line, "break %hd", &addr) == 1) {
-        if (addr < MAX_MEM_SIZE) {
-#ifdef DEBUG_MODE
-          vm->breakpoints[addr] = !vm->breakpoints[addr];
-          msg("Breakpoint %s at 0x%04X\n",
-              vm->breakpoints[addr] ? "set" : "cleared", (uint16_t)addr);
-#else
-          err("Error: Debugger compiled without DEBUG_MODE.\n");
-#endif
-        } else {
-          err("Error: Address 0x%X is out of range.\n", addr);
-        }
-      } else {
-        err("Usage: break <addr> (e.g., break 12288)\n");
-      }
-      break;
-    case CONTINUE:
-      vm_run(vm);
-      break;
-    case HELP:
-      print_usage(argv[0]);
-      break;
-    case QUIT:
-      msg("Exiting debugger.\n");
-      keep_running = false;
-      break;
-    default:
-      err("Unknown command. Type 'help' for options.\n");
+    parse_line_result result = handle_command(vm, line);
+    if ((result == PARSE_ERROR_CODE) || (result == PARSE_EXIT_CODE)) {
+      linenoiseFree(line);
       break;
     }
+
+    linenoiseHistoryAdd(line);
+    linenoiseFree(line);
   }
+
+  vm_destroy(vm);
+  return SUCCESS_CODE;
 }
