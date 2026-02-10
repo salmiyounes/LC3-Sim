@@ -26,11 +26,18 @@ add_executable(lc3-dbg
     src/vm.c
     src/loader.c
     src/debugger.c
+    thirdparty/linenoise/linenoise.c
 )
 
 target_include_directories(lc3-dbg
     PRIVATE 
     ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/thirdparty/linenoise
+)
+
+target_compile_options(lc3-dbg 
+    PRIVATE
+    -Wall -Wextra -Wpedantic
 )
 
 target_compile_definitions(lc3-dbg PRIVATE DEBUG_MODE)
