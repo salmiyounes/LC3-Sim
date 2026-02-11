@@ -30,13 +30,13 @@ void vm_run(lc3_vm_p vm) {
       msg("Breakpoint hit at PC: 0x%04X\n", vm->reg[R_PC]);
       vm->last_result = RUN_SUCCESS;
       return;
-    }  
+    }
     if (flag < ARRAY_SIZE(vm_error_messages)) {
-        const char *log_msg = vm_error_messages[flag];
-        if (flag != RUN_SUCCESS)
-          err("%s", log_msg);
-        else
-          msg("%s", log_msg);
+      const char *log_msg = vm_error_messages[flag];
+      if (flag != RUN_SUCCESS)
+        err("%s", log_msg);
+      else
+        msg("%s", log_msg);
     }
     return;
   }

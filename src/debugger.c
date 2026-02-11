@@ -162,9 +162,15 @@ success:
 }
 
 void completion(const char *buf, linenoiseCompletions *lc) {
-  for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
-    if (is_prefix(buf, cmd_handler_table[i].name))
-      linenoiseAddCompletion(lc, cmd_handler_table[i].name);
+  if (is_prefix(buf, "help")) {
+    linenoiseAddCompletion(lc, "help");
+  } else if (is_prefix(buf, "quit")) {
+    linenoiseAddCompletion(lc, "quit");
+  } else {
+    for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
+      if (is_prefix(buf, cmd_handler_table[i].name))
+        linenoiseAddCompletion(lc, cmd_handler_table[i].name);
+    }
   }
 }
 
@@ -184,6 +190,7 @@ int main(int argc, char **argv) {
 
   linenoiseHistorySetMaxLen(HISTORY_MAX_LEN);
   linenoiseSetCompletionCallback(completion);
+  print_help();
   for (;;) {
     if ((line = linenoise("lc3-dbg> ")) == NULL)
       break;
@@ -192,8 +199,7 @@ int main(int argc, char **argv) {
     if (result == PARSE_UNKONWN_CODE) {
       linenoiseFree(line);
       continue;
-    }
-    else if ((result == PARSE_ERROR_CODE) || (result == PARSE_EXIT_CODE)) {
+    } else if ((result == PARSE_ERROR_CODE) || (result == PARSE_EXIT_CODE)) {
       linenoiseFree(line);
       break;
     }
