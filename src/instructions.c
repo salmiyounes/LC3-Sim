@@ -194,10 +194,21 @@ vm_run_result vm_step(lc3_vm_p vm) {
   return vm_run_instr(vm, instr);
 }
 
+void vm_step_over(lc3_vm_p vm) {
+#ifdef DEBUG_MODE
+  vm->last_result = vm_step(vm);
+  return;
+#endif
+  (void)vm;
+  return;
+}
+
 vm_run_result vm_fetch_execute(lc3_vm_p vm) {
   // Check for breakpoints
-  if (is_breakpoint_hit(vm))
-    return 100;
+  if (is_breakpoint_hit(vm)) {
+    vm->last_result = RUN_BREAKPOINT_STOP;
+    longjmp(vm->buf, 1);
+  }
   return vm_step(vm);
 }
 

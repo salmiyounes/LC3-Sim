@@ -26,12 +26,17 @@ void vm_destroy(lc3_vm_p vm) { free(vm); }
 void vm_run(lc3_vm_p vm) {
   if (setjmp(vm->buf) != 0) {
     vm_run_result flag = vm->last_result;
+    if (flag == RUN_BREAKPOINT_STOP) {
+      msg("Breakpoint hit at PC: 0x%04X\n", vm->reg[R_PC]);
+      vm->last_result = RUN_SUCCESS;
+      return;
+    }  
     if (flag < ARRAY_SIZE(vm_error_messages)) {
-      const char *log_msg = vm_error_messages[flag];
-      if (flag != RUN_SUCCESS)
-        err("%s", log_msg);
-      else
-        msg("%s", log_msg);
+        const char *log_msg = vm_error_messages[flag];
+        if (flag != RUN_SUCCESS)
+          err("%s", log_msg);
+        else
+          msg("%s", log_msg);
     }
     return;
   }

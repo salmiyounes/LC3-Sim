@@ -27,8 +27,9 @@ typedef uint16_t lc3_reg;
 
 // Enums
 enum {
-  MAX_MEM_SIZE = 1 << 16, // Memory address space 2 ** 16
-  SIGN_FLAG_BIT = 1 << 15
+  MAX_MEM_SIZE = 0x10000, // Memory address space 2 ** 16
+  SIGN_FLAG_BIT = 0x8000,
+  PC_START_POSITION = 0x3000
 };
 
 typedef enum {
