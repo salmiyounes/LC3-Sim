@@ -42,8 +42,13 @@ void handle_break(lc3_vm_p vm, const char *args) {
   if (s_addr == NULL)
     goto cleanup;
 
-  addr = (uint16_t)strtol(s_addr, NULL, 16);
-
+  long value = strtol(s_addr, NULL, 16);
+  if (value < PC_START_POSITION || value >= MAX_MEM_SIZE) {
+    err("Error: Invalid breakpoint address 0x%04lX.\n", value);
+    msg("Breakpoints must be within (0x3000 - 0xFFFF).\n");
+    goto cleanup;
+  }
+  addr = (uint16_t)value;
   set_breakpoint(vm, addr);
 
 cleanup:
@@ -74,7 +79,7 @@ void handle_registers(lc3_vm_p vm, const char *args) {
 
 void handle_next_instr(lc3_vm_p vm, const char *args) {
   (void)args;
-  vm->last_result = vm_fetch_execute(vm);
+  vm_step_over(vm);
 }
 
 const cmd_handler cmd_handler_table[] = {
@@ -177,16 +182,18 @@ int main(int argc, char **argv) {
     return ERROR_CODE;
   }
 
-  // Set history max len
   linenoiseHistorySetMaxLen(HISTORY_MAX_LEN);
-  // Registering a completion callback
   linenoiseSetCompletionCallback(completion);
   for (;;) {
     if ((line = linenoise("lc3-dbg> ")) == NULL)
       break;
 
     parse_line_result result = handle_command(vm, line);
-    if ((result == PARSE_ERROR_CODE) || (result == PARSE_EXIT_CODE)) {
+    if (result == PARSE_UNKONWN_CODE) {
+      linenoiseFree(line);
+      continue;
+    }
+    else if ((result == PARSE_ERROR_CODE) || (result == PARSE_EXIT_CODE)) {
       linenoiseFree(line);
       break;
     }
