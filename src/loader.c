@@ -5,14 +5,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-int load_data(lc3_vm_p vm, unsigned const char *data, size_t lenght) {
-  size_t load_lenght = (lenght - sizeof(lc3_addr)) / sizeof(lc3_word);
+int load_data(lc3_vm_p vm, unsigned const char *data, size_t length) {
+  size_t load_length = (length - sizeof(lc3_addr)) / sizeof(lc3_word);
   lc3_addr load_addr = (lc3_addr)bswap16(*((lc3_addr *)data));
 
   lc3_word *dst = vm->memory + load_addr;
   lc3_word *src = (lc3_word *)(data + sizeof(lc3_addr));
 
-  while (load_lenght-- > 0)
+  while (load_length-- > 0)
     *(dst++) = (lc3_word)bswap16(*(src++));
 
   reg_write(vm, R_PC, load_addr, false);

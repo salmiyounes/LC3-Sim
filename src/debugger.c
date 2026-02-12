@@ -17,14 +17,14 @@ typedef enum {
   PARSE_SUCCESS_CODE = 0,
   PARSE_ERROR_CODE,
   PARSE_EXIT_CODE,
-  PARSE_UNKONWN_CODE
+  PARSE_UNKNOWN_CODE
 } parse_line_result;
 
 typedef struct {
   char *name;
   char *alias;
   char *description;
-  cmd_handler_func func;
+  cmd_handler_func handler;
 } cmd_handler;
 
 const char *register_names[] = {
@@ -32,6 +32,14 @@ const char *register_names[] = {
     [R_R4] = "R4", [R_R5] = "R5",     [R_R6] = "R6", [R_R7] = "R7",
     [R_PC] = "PC", [R_COND] = "COND",
 };
+
+bool is_help_command(const char *token) {
+  return (strcmp(token, "help") == 0) || (strcmp(token, "h") == 0);
+}
+
+bool is_quit_command(const char *token) {
+  return (strcmp(token, "quit") == 0) || (strcmp(token, "q") == 0);
+}
 
 void handle_break(lc3_vm_p vm, const char *args) {
   (void)vm;
@@ -64,14 +72,14 @@ void handle_run(lc3_vm_p vm, const char *args) {
 
 void handle_continue(lc3_vm_p vm, const char *args) {
   (void)args;
-  vm_step(vm);
+  vm_step_over(vm);
   vm_run(vm);
   return;
 }
 
 void handle_registers(lc3_vm_p vm, const char *args) {
   (void)args;
-  for (uint16_t reg_index = 0; reg_index < R_COUNT; reg_index++)
+  for (int reg_index = 0; reg_index < R_COUNT; reg_index++)
     msg("\t%s   : 0x%04X\n", register_names[reg_index],
         get_reg_val(vm, reg_index));
   putc('\n', stdout);
@@ -89,8 +97,8 @@ const cmd_handler cmd_handler_table[] = {
     {"registers", "reg", "Print current register values", handle_registers},
     {"nexti", "ni", "Execute the next instruction", handle_next_instr}};
 
-static bool cmd_handler_compare(cmd_handler c, const char *str) {
-  return (strcmp(str, c.name) == 0) || (strcmp(str, c.alias) == 0);
+static bool cmd_handler_compare(cmd_handler command, const char *str) {
+  return (strcmp(str, command.name) == 0) || (strcmp(str, command.alias) == 0);
 }
 
 static bool cmd_check_command(const char *str) {
@@ -98,8 +106,8 @@ static bool cmd_check_command(const char *str) {
     return false;
 
   for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
-    cmd_handler c = cmd_handler_table[i];
-    if (cmd_handler_compare(c, str))
+    cmd_handler command = cmd_handler_table[i];
+    if (cmd_handler_compare(command, str))
       return true;
   }
   return false;
@@ -124,10 +132,10 @@ parse_line_result handle_command(lc3_vm_p vm, const char *line) {
   if (token == NULL)
     goto success;
 
-  if ((strcmp(token, "quit") == 0) || (strcmp(token, "q") == 0))
+  if (is_quit_command(token))
     goto exit;
 
-  if ((strcmp(token, "help") == 0) || (strcmp(token, "h") == 0)) {
+  if (is_help_command(token)) {
     print_help();
     goto success;
   }
@@ -140,9 +148,9 @@ parse_line_result handle_command(lc3_vm_p vm, const char *line) {
   args = strtok(NULL, "");
 
   for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
-    cmd_handler c = cmd_handler_table[i];
-    if (cmd_handler_compare(c, token)) {
-      c.func(vm, args);
+    cmd_handler command = cmd_handler_table[i];
+    if (cmd_handler_compare(command, token)) {
+      command.handler(vm, args);
       goto success;
     }
   }
@@ -155,7 +163,7 @@ exit:
   return PARSE_EXIT_CODE;
 unknown:
   free(str);
-  return PARSE_UNKONWN_CODE;
+  return PARSE_UNKNOWN_CODE;
 success:
   free(str);
   return PARSE_SUCCESS_CODE;
@@ -196,7 +204,7 @@ int main(int argc, char **argv) {
       break;
 
     parse_line_result result = handle_command(vm, line);
-    if (result == PARSE_UNKONWN_CODE) {
+    if (result == PARSE_UNKNOWN_CODE) {
       linenoiseFree(line);
       continue;
     } else if ((result == PARSE_ERROR_CODE) || (result == PARSE_EXIT_CODE)) {

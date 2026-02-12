@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #ifdef DEBUG_MODE
-static inline vm_exucution_status vm_current_status(lc3_vm_p vm) {
+static inline vm_execution_status vm_current_status(lc3_vm_p vm) {
   return vm->status;
 }
 #endif
