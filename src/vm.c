@@ -17,6 +17,9 @@ lc3_vm_p vm_create() {
     err("%s: could not allocate memory for 'vm' \n", __func__);
     exit(ERROR_CODE);
   }
+#ifdef DEBUG_MODE
+  vm->status = VM_STOP_RUNNING;
+#endif
   vm->last_result = RUN_SUCCESS;
   return vm;
 }
@@ -24,6 +27,9 @@ lc3_vm_p vm_create() {
 void vm_destroy(lc3_vm_p vm) { free(vm); }
 
 void vm_run(lc3_vm_p vm) {
+#ifdef DEBUG_MODE
+  vm->status = VM_IS_RUNNING;
+#endif
   if (setjmp(vm->buf) != 0) {
     vm_run_result flag = vm->last_result;
     if (flag == RUN_BREAKPOINT_STOP) {

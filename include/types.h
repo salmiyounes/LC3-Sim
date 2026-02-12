@@ -71,6 +71,14 @@ typedef enum {
   FLAG_NEG = 1 << 2,
 } vm_condition_codes;
 
+#ifdef DEBUG_MODE
+typedef enum {
+  VM_IS_RUNNING = 0,
+  VM_HIT_BREAKPOINT,
+  VM_STOP_RUNNING
+} vm_exucution_status;
+#endif
+
 typedef enum { OUT = 0x21, PUTS = 0X22, HALT = 0x25 } trap_vect;
 
 enum { SUCCESS_CODE = 0, ERROR_CODE };
@@ -87,6 +95,7 @@ struct lc3_vm {
   lc3_word memory[MAX_MEM_SIZE];
 #ifdef DEBUG_MODE
   bool breakpoints[MAX_MEM_SIZE];
+  vm_exucution_status status;
 #endif
   lc3_addr reg[R_COUNT];
   jmp_buf buf;

@@ -24,7 +24,12 @@ void _trap_out(lc3_vm_p vm) {
   fflush(stdout);
 }
 
-void _trap_halt(lc3_vm_p vm) { longjmp(vm->buf, 1); }
+void _trap_halt(lc3_vm_p vm) {
+#ifdef DEBUG_MODE
+  vm->status = VM_STOP_RUNNING;
+#endif
+  longjmp(vm->buf, 1);
+}
 
 static const trap_handler_t dispatch_trap_table[38] = {
     [PUTS] = trap(puts),
@@ -196,8 +201,18 @@ vm_run_result vm_step(lc3_vm_p vm) {
 
 void vm_step_over(lc3_vm_p vm) {
 #ifdef DEBUG_MODE
-  vm->last_result = vm_step(vm);
-  return;
+  // Fix HALT problem
+  if (setjmp(vm->buf) != 0)
+    return;
+  switch (vm->status) {
+  case VM_IS_RUNNING:
+  case VM_HIT_BREAKPOINT:
+    vm->last_result = vm_step(vm);
+    break;
+  default:
+    err("The program is not being run.\n");
+    break;
+  }
 #endif
   (void)vm;
   return;
@@ -206,6 +221,9 @@ void vm_step_over(lc3_vm_p vm) {
 vm_run_result vm_fetch_execute(lc3_vm_p vm) {
   // Check for breakpoints
   if (is_breakpoint_hit(vm)) {
+#ifdef DEBUG_MODE
+    vm->status = VM_HIT_BREAKPOINT;
+#endif
     vm->last_result = RUN_BREAKPOINT_STOP;
     longjmp(vm->buf, 1);
   }

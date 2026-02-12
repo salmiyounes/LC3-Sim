@@ -4,6 +4,12 @@
 #include "types.h"
 #include <stdbool.h>
 
+#ifdef DEBUG_MODE
+static inline vm_exucution_status vm_current_status(lc3_vm_p vm) {
+  return vm->status;
+}
+#endif
+
 lc3_vm_p vm_create();
 
 void vm_run(lc3_vm_p vm);
