@@ -1,8 +1,12 @@
+#define _GNU_SOURCE
 #include "vm.h"
 #include "instructions.h"
 #include <setjmp.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
+
+static volatile sig_atomic_t keep_running;
 
 static const char *vm_error_messages[] = {
     [RUN_SUCCESS] = "VM execution halted safely.\n",
@@ -26,6 +30,11 @@ lc3_vm_p vm_create() {
 
 void vm_destroy(lc3_vm_p vm) { free(vm); }
 
+void vm_signal_handler(int sig_id) {
+  (void)sig_id;
+  keep_running = 0;
+}
+
 void vm_run(lc3_vm_p vm) {
 #ifdef DEBUG_MODE
   vm->status = VM_IS_RUNNING;
@@ -47,7 +56,22 @@ void vm_run(lc3_vm_p vm) {
     return;
   }
 
-  for (;;) {
+  // Handle CTRL-C
+  struct sigaction act;
+  memset(&act, 0, sizeof(struct sigaction));
+  sigemptyset(&act.sa_mask);
+
+  act.sa_handler = vm_signal_handler;
+  act.sa_flags = SA_SIGINFO;
+
+  if (sigaction(SIGINT, &act, NULL) == -1) {
+    err("sigaction(): cannot handle SIGUSR1");
+    exit(ERROR_CODE);
+  }
+
+  keep_running = 1;
+
+  while (keep_running) {
     if ((vm->last_result = vm_fetch_execute(vm)) != RUN_SUCCESS)
       longjmp(vm->buf, 1);
   }
