@@ -182,38 +182,39 @@ void completion(const char *buf, linenoiseCompletions *lc) {
   }
 }
 
-int main(int argc, char **argv) {
-  lc3_vm_p vm;
-  char *line;
-  if (argc < 2) {
-    err("Usage: %s <objfile>\n", argv[0]);
-    return ERROR_CODE;
-  }
-
-  vm = vm_create();
-  if (load_obj_file(vm, argv[1]) != SUCCESS_CODE) {
-    err("Failed to load %s\n", argv[1]);
-    return ERROR_CODE;
-  }
-
+void repl_init(void) {
   linenoiseHistorySetMaxLen(HISTORY_MAX_LEN);
   linenoiseSetCompletionCallback(completion);
   print_help();
+}
+
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    err("Usage: %s <objfile>\n", argv[0]);
+    exit(ERROR_CODE);
+  }
+
+  lc3_vm_p vm = vm_create();
+  if (load_obj_file(vm, argv[1]) != SUCCESS_CODE) {
+    err("Failed to load %s\n", argv[1]);
+    vm_destroy(vm);
+    return ERROR_CODE;
+  }
+
+  repl_init();
+
+  char *line;
   for (;;) {
     if ((line = linenoise("lc3-dbg> ")) == NULL)
       break;
-
     parse_line_result result = handle_command(vm, line);
-    if (result == PARSE_UNKNOWN_CODE) {
-      linenoiseFree(line);
-      continue;
-    } else if ((result == PARSE_ERROR_CODE) || (result == PARSE_EXIT_CODE)) {
-      linenoiseFree(line);
-      break;
-    }
 
-    linenoiseHistoryAdd(line);
+    if (result != PARSE_UNKNOWN_CODE)
+      linenoiseHistoryAdd(line);
     linenoiseFree(line);
+
+    if (result == PARSE_ERROR_CODE || result == PARSE_EXIT_CODE)
+      break;
   }
 
   vm_destroy(vm);
