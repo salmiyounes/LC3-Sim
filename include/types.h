@@ -14,8 +14,14 @@
 #define DEBUG_TRACE(...)
 #endif
 
+// Log Macros
 #define msg(...) fprintf(stdout, __VA_ARGS__)
 #define err(...) fprintf(stderr, __VA_ARGS__)
+#define die(...)                                                               \
+  do {                                                                         \
+    err(__VA_ARGS__);                                                          \
+    exit(ERROR_CODE);                                                          \
+  } while (0)
 
 // Macros
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
@@ -79,7 +85,7 @@ typedef enum {
 } vm_execution_status;
 #endif
 
-typedef enum { OUT = 0x21, PUTS = 0X22, HALT = 0x25 } trap_vect;
+typedef enum { OUT = 0x21, PUTS = 0x22, HALT = 0x25 } trap_vect;
 
 enum { SUCCESS_CODE = 0, ERROR_CODE };
 

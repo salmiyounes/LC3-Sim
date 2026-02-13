@@ -17,10 +17,9 @@ static const char *vm_error_messages[] = {
 // VM lifecycle
 lc3_vm_p vm_create() {
   lc3_vm_p vm = calloc(1, sizeof(struct lc3_vm));
-  if (vm == NULL) {
-    err("%s: could not allocate memory for 'vm' \n", __func__);
-    exit(ERROR_CODE);
-  }
+  if (vm == NULL)
+    die("%s: could not allocate memory for 'vm' \n", __func__);
+
 #ifdef DEBUG_MODE
   vm->status = VM_STOP_RUNNING;
 #endif
@@ -64,10 +63,8 @@ void vm_run(lc3_vm_p vm) {
   act.sa_handler = vm_signal_handler;
   act.sa_flags = SA_SIGINFO;
 
-  if (sigaction(SIGINT, &act, NULL) == -1) {
-    err("sigaction(): cannot handle SIGUSR1");
-    exit(ERROR_CODE);
-  }
+  if (sigaction(SIGINT, &act, NULL) == -1)
+    die("sigaction(): cannot handle SIGUSR1");
 
   keep_running = 1;
 
