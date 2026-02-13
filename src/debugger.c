@@ -42,7 +42,6 @@ bool is_quit_command(const char *token) {
 }
 
 void handle_break(lc3_vm_p vm, const char *args) {
-  (void)vm;
   char *str, *s_addr;
   uint16_t addr;
   str = strdup(args);
@@ -72,9 +71,18 @@ void handle_run(lc3_vm_p vm, const char *args) {
 
 void handle_continue(lc3_vm_p vm, const char *args) {
   (void)args;
+#ifdef DEBUG_MODE
+  // Only run "continue" if the vm is running
+  msg("Continuing.\n");
   vm_step_over(vm);
-  vm_run(vm);
+  vm_execution_status status = vm_current_status(vm);
+  if ((status == VM_HIT_BREAKPOINT) || (status == VM_IS_RUNNING))
+    vm_run(vm);
   return;
+#else
+  (void)vm;
+  return;
+#endif
 }
 
 void handle_registers(lc3_vm_p vm, const char *args) {
@@ -190,25 +198,21 @@ void repl_init(void) {
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    err("Usage: %s <objfile>\n", argv[0]);
-    exit(ERROR_CODE);
+    die("Usage: %s <objfile>\n", argv[0]);
   }
 
   lc3_vm_p vm = vm_create();
   if (load_obj_file(vm, argv[1]) != SUCCESS_CODE) {
-    err("Failed to load %s\n", argv[1]);
     vm_destroy(vm);
-    return ERROR_CODE;
+    die("Failed to load %s\n", argv[1]);
   }
 
   repl_init();
 
   char *line;
-  for (;;) {
-    if ((line = linenoise("lc3-dbg> ")) == NULL)
-      break;
-    parse_line_result result = handle_command(vm, line);
+  while ((line = linenoise("(lc3-dbg) ")) != NULL) {
 
+    parse_line_result result = handle_command(vm, line);
     if (result != PARSE_UNKNOWN_CODE)
       linenoiseHistoryAdd(line);
     linenoiseFree(line);
