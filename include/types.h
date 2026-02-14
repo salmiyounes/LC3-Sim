@@ -147,8 +147,9 @@ static inline bool is_breakpoint_hit(lc3_vm_p vm) {
 #ifdef DEBUG_MODE
   lc3_addr index = get_reg_val(vm, R_PC);
   return vm->breakpoints[index];
-#endif
+#else
   (void)vm;
+#endif
   return false;
 }
 
@@ -157,9 +158,10 @@ static inline void set_breakpoint(lc3_vm_p vm, const uint16_t index) {
   if (!vm->breakpoints[index])
     msg("Breakpoint set at 0x%04X\n", (uint16_t)index);
   vm->breakpoints[index] = true;
-#endif
+#else
   (void)vm;
   (void)index;
+#endif
 }
 
 #endif // TYPES_H

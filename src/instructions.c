@@ -213,8 +213,9 @@ void vm_step_over(lc3_vm_p vm) {
     err("The program is not being run.\n");
     break;
   }
-#endif
+#else
   (void)vm;
+#endif
   return;
 }
 

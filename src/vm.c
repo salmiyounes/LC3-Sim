@@ -64,7 +64,7 @@ void vm_run(lc3_vm_p vm) {
   act.sa_flags = SA_SIGINFO;
 
   if (sigaction(SIGINT, &act, NULL) == -1)
-    die("sigaction(): cannot handle SIGUSR1");
+    die("sigaction(): cannot handle SIGINT");
 
   keep_running = 1;
 
