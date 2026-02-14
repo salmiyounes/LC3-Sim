@@ -73,11 +73,12 @@ void handle_continue(lc3_vm_p vm, const char *args) {
   (void)args;
 #ifdef DEBUG_MODE
   // Only run "continue" if the vm is running
-  msg("Continuing.\n");
   vm_step_over(vm);
   vm_execution_status status = vm_current_status(vm);
-  if ((status == VM_HIT_BREAKPOINT) || (status == VM_IS_RUNNING))
+  if ((status == VM_HIT_BREAKPOINT) || (status == VM_IS_RUNNING)) {
+    msg("Continuing.\n");
     vm_run(vm);
+  }
   return;
 #else
   (void)vm;
@@ -94,8 +95,31 @@ void handle_registers(lc3_vm_p vm, const char *args) {
 }
 
 void handle_next_instr(lc3_vm_p vm, const char *args) {
-  (void)args;
-  vm_step_over(vm);
+  // Default just execute one instruction
+  if (!args || strlen(args) == 0) {
+    vm_step_over(vm);
+    return;
+  }
+
+  char *str = strdup(args);
+  char *ptr = strstrip(str, ' ', '\t');
+  if (strlen(ptr) == 0) {
+    vm_step_over(vm);
+    goto finish;
+  }
+
+  int count;
+  if (sscanf(ptr, "%d", &count) == 0) {
+    msg("No symbol '%s' in current context.\n", ptr);
+    goto finish;
+  }
+
+  for (int i = 0; i < count; i++)
+    vm_step_over(vm);
+
+finish:
+  free(str);
+  return;
 }
 
 const cmd_handler cmd_handler_table[] = {

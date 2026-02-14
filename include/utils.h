@@ -1,12 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define strdup(x) _strdup(x)
+#define strstrip(x, ...) _strstrip(x, __VA_ARGS__, 0)
 
 __attribute__((unused)) static bool is_prefix(const char *pre,
                                               const char *str) {
@@ -24,6 +26,38 @@ __attribute__((unused)) static char *_strdup(const char *src) {
     return NULL;
 
   return (char *)memcpy(new_s, src, len);
+}
+
+__attribute__((unused)) static char *__strstrip(char *s, char c) {
+  size_t size;
+  char *end;
+
+  size = strlen(s);
+  if (!size)
+    return s;
+
+  end = s + size - 1;
+  while (end >= s && (*end == c))
+    end--;
+  *(end + 1) = '\0';
+
+  while (*s && (*s == c))
+    s++;
+
+  return s;
+}
+
+__attribute__((unused)) static char *_strstrip(char *s, ...) {
+  va_list args;
+
+  va_start(args, s);
+
+  int c;
+  while ((c = va_arg(args, int)) != 0)
+    s = __strstrip(s, (char)c);
+
+  va_end(args);
+  return s;
 }
 
 __attribute__((unused)) static uint16_t bswap16(uint16_t x) {
