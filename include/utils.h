@@ -10,9 +10,17 @@
 #define strdup(x) _strdup(x)
 #define strstrip(x, ...) _strstrip(x, __VA_ARGS__, 0)
 
-__attribute__((unused)) static bool is_prefix(const char *pre,
+__attribute__((unused)) static bool startwith(const char *pre,
                                               const char *str) {
-  return strncmp(pre, str, strlen(pre)) == 0;
+  // https://github.com/jart/blink/blob/master/blink/startswith.c
+  for (;;) {
+    if (!*pre)
+      return true;
+    if (!*str)
+      return false;
+    if (*str++ != *pre++)
+      return false;
+  }
 }
 
 __attribute__((unused)) static char *_strdup(const char *src) {

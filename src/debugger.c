@@ -202,13 +202,13 @@ success:
 }
 
 void completion(const char *buf, linenoiseCompletions *lc) {
-  if (is_prefix(buf, "help")) {
+  if (startwith(buf, "help")) {
     linenoiseAddCompletion(lc, "help");
-  } else if (is_prefix(buf, "quit")) {
+  } else if (startwith(buf, "quit")) {
     linenoiseAddCompletion(lc, "quit");
   } else {
     for (size_t i = 0; i < ARRAY_SIZE(cmd_handler_table); i++) {
-      if (is_prefix(buf, cmd_handler_table[i].name))
+      if (startwith(buf, cmd_handler_table[i].name))
         linenoiseAddCompletion(lc, cmd_handler_table[i].name);
     }
   }
