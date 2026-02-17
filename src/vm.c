@@ -41,7 +41,10 @@ void vm_run(lc3_vm_p vm) {
   if (setjmp(vm->buf) != 0) {
     vm_run_result flag = vm->last_result;
     if (flag == RUN_BREAKPOINT_STOP) {
-      msg("Breakpoint hit at PC: 0x%04X\n", vm->reg[R_PC]);
+#ifdef DEBUG_MODE
+      msg("Breakpoint %d hit at PC: 0x%04X\n", vm_breakpoints_count(vm),
+          vm->reg[R_PC]);
+#endif
       vm->last_result = RUN_SUCCESS;
       return;
     }

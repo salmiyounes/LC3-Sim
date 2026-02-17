@@ -232,7 +232,8 @@ vm_run_result vm_fetch_execute(lc3_vm_p vm) {
   return vm_step(vm);
 }
 
-void vm_call_handler(lc3_vm_p vm, const lc3_word instr, const vm_opcode opcode) {
+void vm_call_handler(lc3_vm_p vm, const lc3_word instr,
+                     const vm_opcode opcode) {
   ins_handler_t handler = dispatch_opcode_table[opcode];
   handler(vm, instr);
 }

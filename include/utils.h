@@ -82,7 +82,8 @@ static uint16_t sextend(uint16_t x, uint16_t y) {
   return (x ^ m) - m;
 }
 
-__attribute__((unused)) static bool test_bit(const uint16_t x, const uint16_t b) {
+__attribute__((unused)) static bool test_bit(const uint16_t x,
+                                             const uint16_t b) {
   return (bool)(x & (1 << b));
 }
 
