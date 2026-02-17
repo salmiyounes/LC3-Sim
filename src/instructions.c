@@ -3,7 +3,7 @@
 #include <setjmp.h>
 #include <stdbool.h>
 
-typedef void (*ins_handler_t)(lc3_vm_p vm, lc3_word instr);
+typedef void (*ins_handler_t)(lc3_vm_p vm, const lc3_word instr);
 typedef void (*trap_handler_t)(lc3_vm_p vm);
 
 #define CONCAT(a, b) a##b
@@ -38,7 +38,7 @@ static const trap_handler_t dispatch_trap_table[38] = {
 };
 
 // Opcode functions
-void _handle_add(lc3_vm_p vm, lc3_word instr) {
+void _handle_add(lc3_vm_p vm, const lc3_word instr) {
   lc3_reg dr = f_dr(instr);
   if (!test_bit(instr, 5)) {
     DEBUG_TRACE("VM_OPCODE_ADD dr %x sr1 %x sr2 %x\n", dr, f_sr1(instr),
@@ -54,7 +54,7 @@ void _handle_add(lc3_vm_p vm, lc3_word instr) {
   }
 }
 
-void _handle_and(lc3_vm_p vm, lc3_word instr) {
+void _handle_and(lc3_vm_p vm, const lc3_word instr) {
   lc3_reg dr = f_dr(instr);
   if (!test_bit(instr, 5)) {
     DEBUG_TRACE("VM_OPCODE_AND dr %x sr1 %x sr2 %x\n", dr, f_sr1(instr),
@@ -70,19 +70,19 @@ void _handle_and(lc3_vm_p vm, lc3_word instr) {
   }
 }
 
-void _handle_br(lc3_vm_p vm, lc3_word instr) {
+void _handle_br(lc3_vm_p vm, const lc3_word instr) {
   lc3_addr pc_offset9 = sextend(instr, 9);
   lc3_word flag = f_dr(instr);
   if (flag & get_reg_val(vm, R_COND))
     reg_write(vm, R_PC, get_reg_val(vm, R_PC) + pc_offset9, false);
 }
 
-void _handle_jmp(lc3_vm_p vm, lc3_word instr) {
+void _handle_jmp(lc3_vm_p vm, const lc3_word instr) {
   lc3_reg base_r = f_base_r(instr);
   reg_write(vm, R_PC, get_reg_val(vm, base_r), false);
 }
 
-void _handle_jsr(lc3_vm_p vm, lc3_word instr) {
+void _handle_jsr(lc3_vm_p vm, const lc3_word instr) {
   lc3_reg temp = get_reg_val(vm, R_PC);
   if (test_bit(instr, 11)) {
     reg_write(vm, R_PC, f_base_r(instr), false);
@@ -93,7 +93,7 @@ void _handle_jsr(lc3_vm_p vm, lc3_word instr) {
   reg_write(vm, R_R7, temp, false);
 }
 
-void _handle_ld(lc3_vm_p vm, lc3_word instr) {
+void _handle_ld(lc3_vm_p vm, const lc3_word instr) {
   // TODO: if computed address is in privileged memory AND PSR[15] == 1
   //  Initiate ACV exception
   lc3_reg dr = f_dr(instr);
@@ -102,52 +102,53 @@ void _handle_ld(lc3_vm_p vm, lc3_word instr) {
             true);
 }
 
-void _handle_ldi(lc3_vm_p vm, lc3_word instr) {
+void _handle_ldi(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
   msg("Unimplemented opcode LDI\n");
   assert(0);
 }
-void _handle_ldr(lc3_vm_p vm, lc3_word instr) {
+
+void _handle_ldr(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
   msg("Unimplemented opcode LDR\n");
   assert(0);
 }
 
-void _handle_lea(lc3_vm_p vm, lc3_word instr) {
+void _handle_lea(lc3_vm_p vm, const lc3_word instr) {
   lc3_reg dr = f_dr(instr);
   lc3_addr pc_offset9 = sextend(instr, 9);
   reg_write(vm, dr, get_reg_val(vm, R_PC) + pc_offset9, true);
 }
 
-void _handle_not(lc3_vm_p vm, lc3_word instr) {
+void _handle_not(lc3_vm_p vm, const lc3_word instr) {
   lc3_reg dr = f_dr(instr);
   reg_write(vm, dr, ~get_reg_val(vm, f_sr(instr)), true);
 }
 
-void _handle_rti(lc3_vm_p vm, lc3_word instr) {
+void _handle_rti(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
   msg("Unimplemented opcode RTI\n");
   assert(0);
 }
 
-void _handle_st(lc3_vm_p vm, lc3_word instr) {
+void _handle_st(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
   msg("Unimplemented opcode ST\n");
   assert(0);
 }
 
-void _handle_sti(lc3_vm_p vm, lc3_word instr) {
+void _handle_sti(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
   msg("Unimplemented opcode STI\n");
   assert(0);
 }
 
-void _handle_str(lc3_vm_p vm, lc3_word instr) {
+void _handle_str(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
   msg("Unimplemented opcode STR\n");
@@ -161,14 +162,14 @@ void vm_call_trap_handler(lc3_vm_p vm, const uint16_t vect8) {
   handler(vm);
 }
 
-void _handle__trap(lc3_vm_p vm, lc3_word instr) {
+void _handle__trap(lc3_vm_p vm, const lc3_word instr) {
   uint16_t vect8 = f_vect8(instr);
   if (vect8 >= ARRAY_SIZE(dispatch_trap_table))
     return;
   vm_call_trap_handler(vm, vect8);
 }
 
-void _handle_reserved(lc3_vm_p vm, lc3_word instr) {
+void _handle_reserved(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
   return;
@@ -231,7 +232,7 @@ vm_run_result vm_fetch_execute(lc3_vm_p vm) {
   return vm_step(vm);
 }
 
-void vm_call_handler(lc3_vm_p vm, lc3_word instr, const vm_opcode opcode) {
+void vm_call_handler(lc3_vm_p vm, const lc3_word instr, const vm_opcode opcode) {
   ins_handler_t handler = dispatch_opcode_table[opcode];
   handler(vm, instr);
 }

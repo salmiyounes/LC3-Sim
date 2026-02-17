@@ -36,7 +36,7 @@ __attribute__((unused)) static char *_strdup(const char *src) {
   return (char *)memcpy(new_s, src, len);
 }
 
-__attribute__((unused)) static char *__strstrip(char *s, char c) {
+__attribute__((unused)) static char *__strstrip(char *s, const char c) {
   size_t size;
   char *end;
 
@@ -82,7 +82,7 @@ static uint16_t sextend(uint16_t x, uint16_t y) {
   return (x ^ m) - m;
 }
 
-__attribute__((unused)) static bool test_bit(uint16_t x, uint16_t b) {
+__attribute__((unused)) static bool test_bit(const uint16_t x, const uint16_t b) {
   return (bool)(x & (1 << b));
 }
 
