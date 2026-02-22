@@ -9,15 +9,7 @@ static inline vm_execution_status vm_current_status(lc3_vm_p vm) {
   return vm->status;
 }
 
-static inline int vm_breakpoints_count(lc3_vm_p vm) {
-  int count = 0;
-
-  // TODO: this is wasteful and slow
-  for (int i = 0; i < MAX_MEM_SIZE; i++)
-    count += (int)vm->breakpoints[i];
-
-  return count;
-}
+static inline size_t vm_breakpoints_count(lc3_vm_p vm) { return vm->br_count; }
 #endif
 
 lc3_vm_p vm_create();

@@ -100,6 +100,7 @@ typedef enum {
 struct lc3_vm {
   lc3_word memory[MAX_MEM_SIZE];
 #ifdef DEBUG_MODE
+  size_t br_count;
   bool breakpoints[MAX_MEM_SIZE];
   vm_execution_status status;
 #endif
@@ -155,8 +156,10 @@ static inline bool is_breakpoint_hit(lc3_vm_p vm) {
 
 static inline void set_breakpoint(lc3_vm_p vm, const uint16_t index) {
 #ifdef DEBUG_MODE
-  if (!vm->breakpoints[index])
+  if (!vm->breakpoints[index]) {
     msg("Breakpoint set at 0x%04X\n", (uint16_t)index);
+    vm->br_count++;
+  }
   vm->breakpoints[index] = true;
 #else
   (void)vm;
