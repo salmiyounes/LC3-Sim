@@ -6,12 +6,7 @@
 static bool sign_bit(const uint16_t x) { return (bool)(x & SIGN_FLAG_BIT); }
 
 static vm_condition_codes vm_sign_flag(const uint16_t value) {
-  if (value == 0)
-    return FLAG_ZRO;
-  else if (sign_bit(value))
-    return FLAG_NEG;
-  else
-    return FLAG_POS;
+  return (value == 0) ? FLAG_ZRO : (sign_bit(value) ? FLAG_NEG : FLAG_POS);
 }
 
 static void vm_setcc(lc3_vm_p vm, const lc3_reg reg_index) {
