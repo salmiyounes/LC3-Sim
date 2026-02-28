@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define strdup(x) _strdup(x)
 #define strstrip(x, ...) _strstrip(x, __VA_ARGS__, 0)
 
 __attribute__((unused)) static bool startwith(const char *pre,
@@ -23,7 +22,7 @@ __attribute__((unused)) static bool startwith(const char *pre,
   }
 }
 
-__attribute__((unused)) static char *_strdup(const char *src) {
+__attribute__((unused)) static char *xstrdup(const char *src) {
   if (src == NULL)
     return NULL;
 

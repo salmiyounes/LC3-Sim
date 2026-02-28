@@ -150,8 +150,8 @@ static inline bool is_breakpoint_hit(lc3_vm_p vm) {
   return vm->breakpoints[index];
 #else
   (void)vm;
-#endif
   return false;
+#endif
 }
 
 static inline void set_breakpoint(lc3_vm_p vm, const uint16_t index) {

@@ -44,7 +44,7 @@ bool is_quit_command(const char *token) {
 void handle_break(lc3_vm_p vm, const char *args) {
   char *str, *s_addr;
   uint16_t addr;
-  str = strdup(args);
+  str = xstrdup(args);
   s_addr = strtok(str, " ");
   if (s_addr == NULL)
     goto cleanup;
@@ -101,7 +101,7 @@ void handle_next_instr(lc3_vm_p vm, const char *args) {
     return;
   }
 
-  char *str = strdup(args);
+  char *str = xstrdup(args);
   char *ptr = strstrip(str, ' ', '\t');
   if (strlen(ptr) == 0) {
     vm_step_over(vm);
@@ -156,7 +156,7 @@ void print_help(void) {
 
 parse_line_result handle_command(lc3_vm_p vm, const char *line) {
   char *token, *str, *args;
-  str = strdup(line);
+  str = xstrdup(line);
   if (str == NULL)
     goto error;
 
