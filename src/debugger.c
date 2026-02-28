@@ -156,25 +156,32 @@ void print_help(void) {
 
 parse_line_result handle_command(lc3_vm_p vm, const char *line) {
   char *token, *str, *args;
-  str = xstrdup(line);
-  if (str == NULL)
-    goto error;
+  parse_line_result result = PARSE_SUCCESS_CODE;
+  if ((str = xstrdup(line)) == NULL) {
+    result = PARSE_ERROR_CODE;
+    goto finish;
+  }
 
-  token = strtok(str, " ");
-  if (token == NULL)
-    goto success;
+  if ((token = strtok(str, " ")) == NULL) {
+    result = PARSE_SUCCESS_CODE;
+    goto finish;
+  }
 
-  if (is_quit_command(token))
-    goto exit;
+  if (is_quit_command(token)) {
+    result = PARSE_EXIT_CODE;
+    goto finish;
+  }
 
   if (is_help_command(token)) {
     print_help();
-    goto success;
+    result = PARSE_SUCCESS_CODE;
+    goto finish;
   }
 
   if (!cmd_check_command(token)) {
     msg("Undefined command: '%s'.  Try 'help'.\n", token);
-    goto unknown;
+    result = PARSE_UNKNOWN_CODE;
+    goto finish;
   }
 
   args = strtok(NULL, "");
@@ -183,22 +190,14 @@ parse_line_result handle_command(lc3_vm_p vm, const char *line) {
     cmd_handler command = cmd_handler_table[i];
     if (cmd_handler_compare(command, token)) {
       command.handler(vm, args);
-      goto success;
+      result = PARSE_SUCCESS_CODE;
+      goto finish;
     }
   }
 
-error:
+finish:
   free(str);
-  return PARSE_ERROR_CODE;
-exit:
-  free(str);
-  return PARSE_EXIT_CODE;
-unknown:
-  free(str);
-  return PARSE_UNKNOWN_CODE;
-success:
-  free(str);
-  return PARSE_SUCCESS_CODE;
+  return result;
 }
 
 void completion(const char *buf, linenoiseCompletions *lc) {
