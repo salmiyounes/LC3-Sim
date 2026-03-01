@@ -30,7 +30,7 @@ static inline vm_opcode f_opcode(const lc3_word instr) {
 
 vm_run_result vm_step(lc3_vm_p vm);
 
-void vm_step_over(lc3_vm_p vm);
+void vm_single_step(lc3_vm_p vm);
 
 vm_run_result vm_fetch_execute(lc3_vm_p vm);
 

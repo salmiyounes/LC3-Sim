@@ -204,7 +204,7 @@ vm_run_result vm_step(lc3_vm_p vm) {
   return vm_run_instr(vm, instr);
 }
 
-void vm_step_over(lc3_vm_p vm) {
+void vm_single_step(lc3_vm_p vm) {
 #ifdef DEBUG_MODE
   // Fix HALT problem
   if (setjmp(vm->buf) != 0)

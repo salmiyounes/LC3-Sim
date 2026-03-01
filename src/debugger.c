@@ -74,7 +74,7 @@ void handle_continue(lc3_vm_p vm, const char *args) {
   (void)args;
 #ifdef DEBUG_MODE
   // Only run "continue" if the vm is running
-  vm_step_over(vm);
+  vm_single_step(vm);
   vm_execution_status status = vm_current_status(vm);
   if ((status == VM_HIT_BREAKPOINT) || (status == VM_IS_RUNNING)) {
     msg("Continuing.\n");
@@ -98,14 +98,14 @@ void handle_registers(lc3_vm_p vm, const char *args) {
 void handle_next_instr(lc3_vm_p vm, const char *args) {
   // Default just execute one instruction
   if (!args || strlen(args) == 0) {
-    vm_step_over(vm);
+    vm_single_step(vm);
     return;
   }
 
   char *str = xstrdup(args);
   char *ptr = strstrip(str, ' ', '\t');
   if (strlen(ptr) == 0) {
-    vm_step_over(vm);
+    vm_single_step(vm);
     goto finish;
   }
 
@@ -118,7 +118,7 @@ void handle_next_instr(lc3_vm_p vm, const char *args) {
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
   int ic = MIN(count, get_instruction_count(vm));
   while (ic-- > 0)
-    vm_step_over(vm);
+    vm_single_step(vm);
 
 finish:
   free(str);
