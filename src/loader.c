@@ -15,6 +15,10 @@ int load_data(lc3_vm_p vm, unsigned const char *data, size_t length) {
   while (load_length-- > 0)
     *(dst++) = (lc3_word)bswap16(*(src++));
 
+#ifdef DEBUG_MODE
+  vm->ic = dst - (vm->memory + load_addr);
+#endif
+
   reg_write(vm, R_PC, load_addr, false);
   return SUCCESS_CODE;
 }

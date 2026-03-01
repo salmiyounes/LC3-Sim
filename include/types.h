@@ -100,6 +100,7 @@ typedef enum {
 struct lc3_vm {
   lc3_word memory[MAX_MEM_SIZE];
 #ifdef DEBUG_MODE
+  int ic;
   size_t br_count;
   bool breakpoints[MAX_MEM_SIZE];
   vm_execution_status status;
@@ -142,6 +143,21 @@ static inline lc3_addr get_reg_val(lc3_vm_p vm, const uint16_t reg_idx) {
 static inline lc3_addr *get_reg_ptr(lc3_vm_p vm, const uint16_t reg_idx) {
   assert(reg_idx < R_COUNT);
   return &vm->reg[reg_idx];
+}
+
+#ifdef DEBUG_MODE
+static inline vm_execution_status get_status_code(lc3_vm_p vm) {
+  return vm->status;
+}
+#endif
+
+static inline int get_instruction_count(lc3_vm_p vm) {
+#ifdef DEBUG_MODE
+  return vm->ic;
+#else
+  (void)vm;
+  return -1;
+#endif
 }
 
 static inline bool is_breakpoint_hit(lc3_vm_p vm) {
