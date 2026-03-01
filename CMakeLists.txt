@@ -26,6 +26,7 @@ add_executable(lc3-dbg
     src/vm.c
     src/loader.c
     src/debugger.c
+    src/main.c 
     thirdparty/linenoise/linenoise.c
 )
 
