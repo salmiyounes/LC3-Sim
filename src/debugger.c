@@ -1,3 +1,4 @@
+#include "debugger.h"
 #include "../thirdparty/linenoise/linenoise.h"
 #include "instructions.h"
 #include "loader.h"
@@ -219,17 +220,7 @@ void repl_init(void) {
   print_help();
 }
 
-int main(int argc, char **argv) {
-  if (argc < 2) {
-    die("Usage: %s <objfile>\n", argv[0]);
-  }
-
-  lc3_vm_p vm = vm_create();
-  if (load_obj_file(vm, argv[1]) != SUCCESS_CODE) {
-    vm_destroy(vm);
-    die("Failed to load %s\n", argv[1]);
-  }
-
+int debugger_run(lc3_vm_p vm) {
   repl_init();
 
   char *line;
@@ -244,6 +235,5 @@ int main(int argc, char **argv) {
       break;
   }
 
-  vm_destroy(vm);
   return SUCCESS_CODE;
 }
