@@ -196,7 +196,6 @@ static const ins_handler_t dispatch_opcode_table[16] = {
 // fetch/exucution logic
 vm_run_result vm_step(lc3_vm_p vm) {
 #ifdef DEBUG_MODE
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
   vm->ic = MAX(0, get_instruction_count(vm) - 1);
 #endif
   lc3_addr *pc = get_reg_ptr(vm, R_PC);

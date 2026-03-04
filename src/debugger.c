@@ -115,7 +115,6 @@ void handle_next_instr(lc3_vm_p vm, const char *args) {
     goto finish;
   }
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
   int ic = MIN(count, get_instruction_count(vm));
   while (ic-- > 0)
     vm_single_step(vm);
