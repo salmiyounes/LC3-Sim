@@ -105,15 +105,13 @@ void _handle_ld(lc3_vm_p vm, const lc3_word instr) {
 void _handle_ldi(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
-  msg("Unimplemented opcode LDI\n");
-  assert(0);
+  die("Unimplemented opcode LDI\n");
 }
 
 void _handle_ldr(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
-  msg("Unimplemented opcode LDR\n");
-  assert(0);
+  die("Unimplemented opcode LDR\n");
 }
 
 void _handle_lea(lc3_vm_p vm, const lc3_word instr) {
@@ -130,29 +128,25 @@ void _handle_not(lc3_vm_p vm, const lc3_word instr) {
 void _handle_rti(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
-  msg("Unimplemented opcode RTI\n");
-  assert(0);
+  die("Unimplemented opcode RTI\n");
 }
 
 void _handle_st(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
-  msg("Unimplemented opcode ST\n");
-  assert(0);
+  die("Unimplemented opcode ST\n");
 }
 
 void _handle_sti(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
-  msg("Unimplemented opcode STI\n");
-  assert(0);
+  die("Unimplemented opcode STI\n");
 }
 
 void _handle_str(lc3_vm_p vm, const lc3_word instr) {
   (void)vm;
   (void)instr;
-  msg("Unimplemented opcode STR\n");
-  assert(0);
+  die("Unimplemented opcode STR\n");
 }
 
 void vm_call_trap_handler(lc3_vm_p vm, const uint16_t vect8) {
