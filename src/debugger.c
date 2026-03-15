@@ -1,6 +1,6 @@
 #include "debugger.h"
-#include "../thirdparty/linenoise/linenoise.h"
 #include "instructions.h"
+#include "linenoise.h"
 #include "loader.h"
 #include "vm.h"
 #include <stdbool.h>

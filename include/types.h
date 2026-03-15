@@ -27,6 +27,7 @@
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define CONCAT(a, b) a##b
 
 // Types
 typedef uint16_t lc3_word;

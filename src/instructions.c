@@ -6,7 +6,6 @@
 typedef void (*ins_handler_t)(lc3_vm_p vm, const lc3_word instr);
 typedef void (*trap_handler_t)(lc3_vm_p vm);
 
-#define CONCAT(a, b) a##b
 #define trap(x) CONCAT(_trap_, x)
 #define handle(x) CONCAT(_handle_, x)
 
