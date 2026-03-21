@@ -8,12 +8,6 @@
 
 static volatile sig_atomic_t keep_running;
 
-static const char *vm_error_messages[] = {
-    [RUN_SUCCESS] = "VM execution halted safely.\n",
-    [RUN_FAIL] = "Fatal: General VM failure.\n",
-    [RUN_UNHANDLED_OPCODE] = "Fatal: Unhandled or illegal opcode.\n",
-};
-
 // VM lifecycle
 lc3_vm_p vm_create() {
   lc3_vm_p vm = calloc(1, sizeof(struct lc3_vm));
@@ -34,27 +28,47 @@ void vm_signal_handler(int sig_id) {
   keep_running = 0;
 }
 
+const char *vm_error(lc3_vm_p vm) {
+  static const char *vm_error_messages[] = {
+      [RUN_SUCCESS] = "VM execution halted safely.\n",
+      [RUN_FAIL] = "Fatal: General VM failure.\n",
+      [RUN_UNHANDLED_OPCODE] = "Fatal: Unhandled or illegal opcode.\n",
+  };
+
+  vm_run_result flag = vm->last_result;
+
+#ifdef DEBUG_MODE
+  if (flag == RUN_BREAKPOINT_STOP) {
+    static char buf[100];
+    snprintf(buf, sizeof(buf), "Breakpoint %ld hit at PC: 0x%04X\n",
+             vm_breakpoints_count(vm), vm->reg[R_PC]);
+    return buf;
+  }
+#endif
+
+  if (flag < ARRAY_SIZE(vm_error_messages))
+    return vm_error_messages[flag];
+
+  return "Fatal: Unknown VM error.\n";
+}
+
 void vm_run(lc3_vm_p vm) {
 #ifdef DEBUG_MODE
   vm->status = VM_IS_RUNNING;
 #endif
   if (setjmp(vm->buf) != 0) {
     vm_run_result flag = vm->last_result;
+    const char *log_msg = vm_error(vm);
+
     if (flag == RUN_BREAKPOINT_STOP) {
-#ifdef DEBUG_MODE
-      msg("Breakpoint %ld hit at PC: 0x%04X\n", vm_breakpoints_count(vm),
-          vm->reg[R_PC]);
-#endif
       vm->last_result = RUN_SUCCESS;
-      return;
+      msg("%s", log_msg);
+    } else if (flag != RUN_SUCCESS) {
+      err("%s", log_msg);
+    } else {
+      msg("%s", log_msg);
     }
-    if (flag < ARRAY_SIZE(vm_error_messages)) {
-      const char *log_msg = vm_error_messages[flag];
-      if (flag != RUN_SUCCESS)
-        err("%s", log_msg);
-      else
-        msg("%s", log_msg);
-    }
+
     return;
   }
 
