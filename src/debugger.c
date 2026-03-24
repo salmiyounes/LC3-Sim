@@ -10,9 +10,7 @@
 
 #define HISTORY_MAX_LEN 100
 
-typedef void (*cmd_handler_func)(lc3_vm_p vm, const char *args);
-
-typedef enum { RUN = 0, QUIT, HELP, BREAK, CONTINUE, UNKNOWN } cmd_type;
+typedef void (*cmd_handler_func)(lc3_vm_p, const char *);
 
 typedef enum {
   PARSE_SUCCESS_CODE = 0,
@@ -33,14 +31,6 @@ const char *register_names[] = {
     [R_R4] = "R4", [R_R5] = "R5",     [R_R6] = "R6", [R_R7] = "R7",
     [R_PC] = "PC", [R_COND] = "COND",
 };
-
-bool is_help_command(const char *token) {
-  return (strcmp(token, "help") == 0) || (strcmp(token, "h") == 0);
-}
-
-bool is_quit_command(const char *token) {
-  return (strcmp(token, "quit") == 0) || (strcmp(token, "q") == 0);
-}
 
 void handle_break(lc3_vm_p vm, const char *args) {
   char *str, *s_addr;
@@ -169,12 +159,12 @@ parse_line_result handle_command(lc3_vm_p vm, const char *line) {
     goto finish;
   }
 
-  if (is_quit_command(token)) {
+  if ((strcmp(token, "help") == 0) || (strcmp(token, "h") == 0)) {
     result = PARSE_EXIT_CODE;
     goto finish;
   }
 
-  if (is_help_command(token)) {
+  if ((strcmp(token, "quit") == 0) || (strcmp(token, "q") == 0)) {
     print_help();
     result = PARSE_SUCCESS_CODE;
     goto finish;
