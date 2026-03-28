@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DEBUGGER_PROMPT "(lc3-dbg) "
 #define HISTORY_MAX_LEN 100
 
 typedef void (*cmd_handler_func)(lc3_vm_p, const char *);
@@ -215,7 +216,7 @@ int debugger_run(lc3_vm_p vm) {
   repl_init();
 
   char *line;
-  while ((line = linenoise("(lc3-dbg) ")) != NULL) {
+  while ((line = linenoise(DEBUGGER_PROMPT)) != NULL) {
 
     parse_line_result result = handle_command(vm, line);
     if (result != PARSE_UNKNOWN_CODE)
