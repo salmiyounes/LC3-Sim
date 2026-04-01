@@ -167,12 +167,12 @@ parse_line_result handle_command(lc3_vm_p vm, const char *line) {
     goto finish;
   }
 
-  if ((strcmp(token, "help") == 0) || (strcmp(token, "h") == 0)) {
+  if ((strcmp(token, "quit") == 0) || (strcmp(token, "q") == 0)) {
     result = PARSE_EXIT_CODE;
     goto finish;
   }
 
-  if ((strcmp(token, "quit") == 0) || (strcmp(token, "q") == 0)) {
+  if ((strcmp(token, "help") == 0) || (strcmp(token, "h") == 0)) {
     print_help();
     result = PARSE_SUCCESS_CODE;
     goto finish;
