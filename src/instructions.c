@@ -102,14 +102,14 @@ void _handle_ld(lc3_vm_p vm, const lc3_word instr) {
 }
 
 void _handle_ldi(lc3_vm_p vm, const lc3_word instr) {
-  (void)vm;
-  (void)instr;
+  UNUSED(vm);
+  UNUSED(instr);
   die("Unimplemented opcode LDI\n");
 }
 
 void _handle_ldr(lc3_vm_p vm, const lc3_word instr) {
-  (void)vm;
-  (void)instr;
+  UNUSED(vm);
+  UNUSED(instr);
   die("Unimplemented opcode LDR\n");
 }
 
@@ -125,26 +125,26 @@ void _handle_not(lc3_vm_p vm, const lc3_word instr) {
 }
 
 void _handle_rti(lc3_vm_p vm, const lc3_word instr) {
-  (void)vm;
-  (void)instr;
+  UNUSED(vm);
+  UNUSED(instr);
   die("Unimplemented opcode RTI\n");
 }
 
 void _handle_st(lc3_vm_p vm, const lc3_word instr) {
-  (void)vm;
-  (void)instr;
+  UNUSED(vm);
+  UNUSED(instr);
   die("Unimplemented opcode ST\n");
 }
 
 void _handle_sti(lc3_vm_p vm, const lc3_word instr) {
-  (void)vm;
-  (void)instr;
+  UNUSED(vm);
+  UNUSED(instr);
   die("Unimplemented opcode STI\n");
 }
 
 void _handle_str(lc3_vm_p vm, const lc3_word instr) {
-  (void)vm;
-  (void)instr;
+  UNUSED(vm);
+  UNUSED(instr);
   die("Unimplemented opcode STR\n");
 }
 
@@ -163,8 +163,8 @@ void _handle__trap(lc3_vm_p vm, const lc3_word instr) {
 }
 
 void _handle_reserved(lc3_vm_p vm, const lc3_word instr) {
-  (void)vm;
-  (void)instr;
+  UNUSED(vm);
+  UNUSED(instr);
   return;
 }
 
@@ -211,7 +211,7 @@ void vm_single_step(lc3_vm_p vm) {
     break;
   }
 #else
-  (void)vm;
+  UNUSED(vm);
 #endif
   return;
 }

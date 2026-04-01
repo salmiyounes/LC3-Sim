@@ -28,9 +28,16 @@ typedef struct {
 } cmd_handler;
 
 const char *register_names[] = {
-    [R_R0] = "R0", [R_R1] = "R1",     [R_R2] = "R2", [R_R3] = "R3",
-    [R_R4] = "R4", [R_R5] = "R5",     [R_R6] = "R6", [R_R7] = "R7",
-    [R_PC] = "PC", [R_COND] = "COND",
+    [R_R0] = "R0", 
+    [R_R1] = "R1",    
+    [R_R2] = "R2", 
+    [R_R3] = "R3",
+    [R_R4] = "R4", 
+    [R_R5] = "R5",    
+    [R_R6] = "R6", 
+    [R_R7] = "R7",
+    [R_PC] = "PC", 
+    [R_COND] = "COND"
 };
 
 void handle_break(lc3_vm_p vm, const char *args) {
@@ -56,13 +63,13 @@ cleanup:
 }
 
 void handle_run(lc3_vm_p vm, const char *args) {
-  (void)args;
+  UNUSED(args);
   vm_run(vm);
   return;
 }
 
 void handle_continue(lc3_vm_p vm, const char *args) {
-  (void)args;
+  UNUSED(args);
 #ifdef DEBUG_MODE
   // Only run "continue" if the vm is running
   vm_single_step(vm);
@@ -73,13 +80,13 @@ void handle_continue(lc3_vm_p vm, const char *args) {
   }
   return;
 #else
-  (void)vm;
+  UNUSED(vm);
   return;
 #endif
 }
 
 void handle_registers(lc3_vm_p vm, const char *args) {
-  (void)args;
+  UNUSED(args);
   for (int reg_index = 0; reg_index < R_COUNT; reg_index++)
     msg("\t%s   : 0x%04X\n", register_names[reg_index],
         get_reg_val(vm, reg_index));

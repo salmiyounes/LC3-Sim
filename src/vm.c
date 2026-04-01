@@ -24,7 +24,7 @@ lc3_vm_p vm_create() {
 void vm_destroy(lc3_vm_p vm) { free(vm); }
 
 void vm_signal_handler(int sig_id) {
-  (void)sig_id;
+  UNUSED(sig_id);
   keep_running = 0;
 }
 

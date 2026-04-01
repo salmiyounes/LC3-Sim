@@ -27,6 +27,7 @@
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define UNUSED(x) (void)(x);
 #define CONCAT(a, b) a##b
 
 // Types
@@ -88,9 +89,16 @@ typedef enum {
 } vm_execution_status;
 #endif
 
-typedef enum { OUT = 0x21, PUTS = 0x22, HALT = 0x25 } trap_vect;
+typedef enum { 
+  OUT = 0x21, 
+  PUTS = 0x22, 
+  HALT = 0x25 
+} trap_vect;
 
-enum { SUCCESS_CODE = 0, ERROR_CODE };
+enum { 
+  SUCCESS_CODE = 0, 
+  ERROR_CODE 
+};
 
 typedef enum {
   RUN_SUCCESS = 0,
@@ -158,7 +166,7 @@ static inline int get_instruction_count(lc3_vm_p vm) {
 #ifdef DEBUG_MODE
   return vm->ic;
 #else
-  (void)vm;
+  UNUSED(vm);
   return -1;
 #endif
 }
@@ -168,7 +176,7 @@ static inline bool is_breakpoint_hit(lc3_vm_p vm) {
   lc3_addr index = get_reg_val(vm, R_PC);
   return vm->breakpoints[index];
 #else
-  (void)vm;
+  UNUSED(vm);
   return false;
 #endif
 }
@@ -181,8 +189,8 @@ static inline void set_breakpoint(lc3_vm_p vm, const uint16_t index) {
   }
   vm->breakpoints[index] = true;
 #else
-  (void)vm;
-  (void)index;
+  UNUSED(vm);
+  UNUSED(index);
 #endif
 }
 
