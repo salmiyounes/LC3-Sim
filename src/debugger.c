@@ -219,15 +219,24 @@ void repl_init(void) {
   print_help();
 }
 
+char *debugger_get_line(const char *prompt) {
+  char *line = linenoise(prompt);
+
+  if (line != NULL)
+    linenoiseHistoryAdd(line);
+
+  return line;
+}
+
 int debugger_run(lc3_vm_p vm) {
   repl_init();
 
-  char *line;
-  while ((line = linenoise(DEBUGGER_PROMPT)) != NULL) {
+  for (;;) {
+    char *line = debugger_get_line(DEBUGGER_PROMPT);
+    if (line == NULL)
+      break;
 
     parse_line_result result = handle_command(vm, line);
-    if (result != PARSE_UNKNOWN_CODE)
-      linenoiseHistoryAdd(line);
     linenoiseFree(line);
 
     if (result == PARSE_ERROR_CODE || result == PARSE_EXIT_CODE)
