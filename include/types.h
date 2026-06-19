@@ -194,4 +194,22 @@ static inline void set_breakpoint(lc3_vm_p vm, const uint16_t index) {
 #endif
 }
 
+static inline int get_breakpoint_index(lc3_vm_p vm, const uint16_t addr) {
+#ifdef DEBUG_MODE
+  if (!vm->breakpoints[addr])
+    return -1;
+
+  int index = 0;
+  for (int i = 0; i < addr; i++) {
+    if (vm->breakpoints[i])
+      index++;
+  }
+  return index;
+#else
+  UNUSED(vm);
+  UNUSED(addr);
+  return -1;
+#endif
+}
+
 #endif // TYPES_H

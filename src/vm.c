@@ -40,8 +40,8 @@ const char *vm_error(lc3_vm_p vm) {
 #ifdef DEBUG_MODE
   if (flag == RUN_BREAKPOINT_STOP) {
     static char buf[100];
-    snprintf(buf, sizeof(buf), "Breakpoint %ld hit at PC: 0x%04X\n",
-             vm_breakpoints_count(vm), vm->reg[R_PC]);
+    snprintf(buf, sizeof(buf), "Breakpoint %d hit at PC: 0x%04X\n",
+             get_breakpoint_index(vm, vm->reg[R_PC]) + 1, vm->reg[R_PC]);
     return buf;
   }
 #endif
