@@ -15,7 +15,7 @@ The goal of this project is to bridge the gap between theoretical computer archi
 Clone the repository and build the project:
 
 ```bash
-git clone https://github.com/salmiyounes/LC3-Sim.git
+git clone --recurse-submodules  https://github.com/salmiyounes/LC3-Sim.git
 cd LC3-Sim
 
 mkdir build
