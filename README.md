@@ -4,7 +4,7 @@
 
 This project implements a full **LC-3 Virtual Machine (VM)** — a simple 16-bit educational instruction set architecture widely used in computer architecture courses.
 
-Unlike most LC-3 VM implementations, this project includes an **interactive debugger** that allows users to inspect and control the machine state during program execution. The debugger uses [linenoise](https://github.com/antirez/linenoise) to enhance the experience with features like **tab completion**, **command history**, and improved input editing.
+Unlike most LC-3 VM implementations, this project includes an [**interactive debugger**](https://en.wikipedia.org/wiki/Debugger) that allows users to inspect and control the machine state during program execution. The debugger uses [linenoise](https://github.com/antirez/linenoise) to enhance the experience with features like **tab completion**, **command history**, and improved input editing.
 
 The goal of this project is to bridge the gap between theoretical computer architecture concepts and hands-on, low-level programming experience.
 
